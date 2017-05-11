@@ -1,0 +1,115 @@
+<%= javascript_tag do %>
+	var array_hollidays = [];
+	
+	function initialize() {
+		<% if Plusgantt.hollidays != '' %>
+			array_hollidays = <%= raw Plusgantt.get_hollidays_js %>;
+			for (var i=0;i<array_hollidays.length;i++) {
+				addRow(array_hollidays[i], i);
+			}
+		<% end %>
+	};
+	
+	function addDate() {
+		var added = false;
+		if (array_hollidays.length > 0) {
+			var hollidays = $("#settings_hollidays").val();
+			if (hollidays.indexOf($("#holliday").val()) == -1) {
+				$("#settings_hollidays").val($("#settings_hollidays").val() + ',' + $("#holliday").val());
+				array_hollidays.push($("#holliday").val());
+				added = true;
+			};
+		} else {
+			array_hollidays.push($("#holliday").val());
+			$("#settings_hollidays").val($("#holliday").val());
+			added = true;
+		};
+		
+		if (added) {
+			cleanRows();
+			for (var i=0;i<array_hollidays.length;i++) {
+				addRow(array_hollidays[i], i);
+			};
+		}
+	};
+	
+	function removeDate(holliday) {
+		var aux_array_hollidays = [];
+		$("#settings_hollidays").val('');
+		for (var i=0;i<array_hollidays.length;i++) {
+			if (array_hollidays[i] != holliday) {
+				if ($("#settings_hollidays").val() == '') {
+					$("#settings_hollidays").val(array_hollidays[i]);
+				} else {
+					$("#settings_hollidays").val($("#settings_hollidays").val() + ',' + array_hollidays[i]);
+				};
+				aux_array_hollidays.push(array_hollidays[i]);
+			};
+		};
+				
+		array_hollidays = aux_array_hollidays;
+		cleanRows();
+		for (var i=0;i<array_hollidays.length;i++) {
+			addRow(array_hollidays[i], i);
+		};
+	};
+	
+	function addRow(holliday, i) {
+		if (i % 2 == 0)	{
+			var markup = '<tr class="odd"><td>' 
+		} else {
+			var markup = '<tr class="even"><td>'
+		};
+		markup = markup + holliday + '</td><td>' + '<a href="#" id="cell_' + i + '" class="icon icon-only icon-del">remove</a>' + '</td></tr>';
+		$("#table_hollidays tbody").append(markup);
+		$("#cell_" + i).click(function() {removeDate(holliday);});
+	}
+	
+	function cleanRows() {
+		$("#table_hollidays > tbody").html('');
+	}
+	
+	$(document).ready(initialize);
+	
+<% end %>
+<table>
+  <tbody>
+    <tr>
+      <th><%= l(:label_hours_per_day) %></th>
+      <td>
+	    <%= select_tag 'settings[hour_by_day]', options_for_select(Plusgantt::VALID_HOURS_BY_DAY.map, Plusgantt.hour_by_day), :style => "width:150px" %>
+		<%= l(:label_help_hours_per_day) %>
+      </td>
+    </tr>
+	<tr>
+      <th><%= l(:label_calculate_end_date) %></th>
+      <td>
+	    <%= check_box_tag 'settings[calculate_end_date]', '1', Plusgantt.calculate_end_date %>
+		<%= l(:label_help_end_date) %>
+      </td>
+    </tr>
+	<tr>
+      <th><%= l(:label_hollidays) %></th>
+      <td>
+		<%= date_field_tag 'holliday', User.current.today %>
+		<%= link_to_function l(:button_apply), 'addDate()', :class => 'icon icon-only icon-add' %>
+	  </td>
+	</tr>
+	<tr>
+		<th></th>
+		<td>
+			<%= hidden_field_tag 'settings[hollidays]', Plusgantt.hollidays %>
+			<table id="table_hollidays" style=" width: 500px" class="list issue-report">
+				<thead>
+					<tr>
+						<th style="width:180px"><%= l(:label_hollidays) %></th>
+						<th style="width:100px"></th>
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
+		</td>
+	</tr>
+  </tbody>
+</table>

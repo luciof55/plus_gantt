@@ -1,0 +1,12 @@
+# English strings go here for Rails i18n
+en:
+  label_plusgantt: Plus Gantt
+  label_control_date: Control date
+  label_progress: Completed
+  label_expected_progress: Expected
+  label_render_versions: Only versions
+  label_hours_per_day: Hours per day
+  label_hollidays: Hollidays
+  label_calculate_end_date: Calculate issue end date
+  label_help_end_date: if checked, the issue end date will be calculated. Estimated hours and end date are required.
+  label_help_hours_per_day: This value is used to calculate issue duration. Firts hours per day are taked from custom field "asignacion" at issue level, then at user level, then at project level. If none are present this value will be used.

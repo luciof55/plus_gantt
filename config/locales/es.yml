@@ -1,0 +1,12 @@
+# Spanish strings go here for Rails i18n
+es:
+  label_plusgantt: Plus Gantt
+  label_control_date: Fecha de Control
+  label_progress: Realizado
+  label_expected_progress: Esperado
+  label_render_versions: Solo versiones
+  label_hours_per_day: Asignación por día
+  label_hollidays: Feriados
+  label_calculate_end_date: Calcular fecha de finalización
+  label_help_end_date: Si se activa, al momento crear/editar una petición, se calcular de forma automática la fecha de finalización, siempre y cuando la petición tenga fecha de inicio y la estimación en horas.
+  label_help_hours_per_day: Este valor es utilizado para en el cálculo de la duración de una petición. Primero se busca el valor de campo personalizado "asignacion" a nivel de petición, sino está seteado se busca a nivel de recurso, sino a nivel de proyecto. Si ninguno esta presente este valor es que se utiliza.
