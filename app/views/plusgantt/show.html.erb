@@ -136,7 +136,7 @@
       style += "height: #{headers_height}px;"
       style += 'background: #eee;'
     %>
-    <%= content_tag(:div, "", :style => style, :class => "gantt_hdr") %>
+    <%= content_tag(:div, "", :style => style, :class => "plusgantt_hdr") %>
     <%
       style  = ""
       style += "right:-2px;"
@@ -145,7 +145,7 @@
       style += 'border-left: 1px solid #c0c0c0;'
       style += 'overflow: hidden;'
     %>
-    <%= content_tag(:div, "", :style => style, :class => "gantt_hdr") %>
+    <%= content_tag(:div, "", :style => style, :class => "plusgantt_hdr") %>
     <%= content_tag(:div, :class => "gantt_subjects") do %>
       <%= @plusgantt.subjects.html_safe %>
     <% end %>
@@ -160,7 +160,7 @@
   style += "height: #{headers_height}px;"
   style += 'background: #eee;'
 %>
-<%= content_tag(:div, '&nbsp;'.html_safe, :style => style, :class => "gantt_hdr") %>
+<%= content_tag(:div, '&nbsp;'.html_safe, :style => style, :class => "plusgantt_hdr") %>
 
 <% ###### Months headers ###### %>
 <%
@@ -176,7 +176,7 @@
     style += "width: #{width}px;"
     style += "height: #{height}px;"
   %>
-  <%= content_tag(:div, :style => style, :class => "gantt_hdr") do %>
+  <%= content_tag(:div, :style => style, :class => "plusgantt_hdr") do %>
     <%= link_to "#{month_f.year}-#{month_f.month}",
                 @plusgantt.params.merge(:year => month_f.year, :month => month_f.month),
                 :title => "#{month_name(month_f.month)} #{month_f.year}" %>
@@ -210,7 +210,7 @@
       style += "height: #{height}px;"
     %>
     <%= content_tag(:div, '&nbsp;'.html_safe,
-                    :style => style, :class => "gantt_hdr") %>
+                    :style => style, :class => "plusgantt_hdr") %>
     <% left = left + width + 1 %>
   <% end %>
   <% while week_f <= @plusgantt.date_to %>
@@ -224,7 +224,7 @@
       style += "width: #{width}px;"
       style += "height: #{height}px;"
     %>
-    <%= content_tag(:div, :style => style, :class => "gantt_hdr") do %>
+    <%= content_tag(:div, :style => style, :class => "plusgantt_hdr") do %>
       <%= content_tag(:small) do %>
         <%= week_f.cweek if width >= 16 %>
       <% end %>
@@ -253,7 +253,7 @@
       style += "width:#{width}px;"
       style += "height:#{height}px;"
       style += "font-size:0.7em;"
-      clss = "gantt_hdr"
+      clss = "plusgantt_hdr"
       clss << " nwday" if @plusgantt.non_working_week_days.include?(wday)
     %>
     <%= content_tag(:div, :style => style, :class => clss) do %>
@@ -285,7 +285,7 @@
       style += "width: #{width}px;"
       style += "height: #{height}px;"
       style += "font-size:0.7em;"
-      clss = "gantt_hdr"
+      clss = "plusgantt_hdr"
       clss << " nwday" if @plusgantt.non_working_week_days.include?(wday)
     %>
     <%= content_tag(:div, :style => style, :class => clss) do %>
@@ -299,7 +299,15 @@
   <% end %>
 <% end %>
 
-<%= @plusgantt.lines.html_safe %>
+  <%
+    style  = ""
+    style += "position: absolute;"
+    style += "top: #{headers_height + 8}px;"
+	%>
+ <%= content_tag(:div, :id => 'div_lines', :style => style) do %>
+      <%= @plusgantt.lines.html_safe %>
+ <% end %>
+
 
 <% ###### Today red line (excluded from cache) ###### %>
 <% if User.current.today >= @plusgantt.date_from and User.current.today <= @plusgantt.date_to %>
@@ -337,6 +345,7 @@
   style += "top: #{headers_height + 1}px;"
   style += "left: 0px;"
   style += "width: #{g_width - 1}px;"
+  style += "z-index: 50;"
 %>
 <%= content_tag(:div, '', :style => style, :id => "gantt_draw_area") %>
 </div>
@@ -374,6 +383,7 @@
 <% content_for :header_tags do %>
   <%= javascript_include_tag 'raphael' %>
   <%= javascript_include_tag :plusgantt, :plugin => 'plus_gantt' %>
+  <%= stylesheet_link_tag "plus_gantt.css", :plugin => "plus_gantt" %>
 <% end %>
 
 <%= javascript_tag do %>

@@ -1,0 +1,16 @@
+.icon-close-tree { background-image: url(../images/folder.png); }
+.icon-open-tree { background-image: url(../images/folder_open.png); }
+
+/***** Gantt chart *****/
+.plusgantt_hdr {
+  position:absolute;
+  top:0;
+  height:16px;
+  border-top: 1px solid #c0c0c0;
+  border-bottom: 1px solid #c0c0c0;
+  border-right: 1px solid #c0c0c0;
+  text-align: center;
+  overflow: hidden;
+}
+
+.plusgantt_hdr.nwday {background-color:#f1f1f1; color:#999; z-index: 10}
