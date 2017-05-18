@@ -1,7 +1,9 @@
 # Plus Gantt
 
-**Plugin for Redmine wich render a project gantt, adding a control date in order to visualize the expected ratio. Also calculate automatically issue due date.**
 
+[![Rate at redmine.org](http://img.shields.io/badge/rate%20at-redmine.org-blue.svg?style=flat)](http://www.redmine.org/plugins/plus_gantt)
+
+**Plugin for Redmine wich render a project gantt, adding a control date in order to visualize the expected ratio. Also calculate automatically issue due date.**
 
 ## Gantt:
 
@@ -31,10 +33,19 @@ In the previuos example, if custom field "asignacion" at issue level is 16hs, th
 
 If issue start date is on holliday or on weekend then plugin will find the next working day.
 
-If you do not want the pluing calculate the start date and due date you can unckeck the option "Calculate issue end date" in the configuration page.
+If you do not want the plugin calculate the start date and due date you can unckeck the option "Calculate issue end date" in the configuration page.
 
 ## Installation notes
 
 **Attention** This plugin extends core function
 
-Download zip and go to Redmine plugins folder and unzip the plugin Or go to Redmine plugins folder and run “git clone github.com/luciof55/ganttplus.git” Then enable the plugin “Administration->Plugins” for projects
+* Download zip and go to Redmine plugins folder and unzip the plugin 
+* Or go to Redmine plugins folder and run “git clone github.com/luciof55/ganttplus.git” 
+* Then enable the plugin “Administration->Plugins” for projects
+
+## Develop Environment
+* Redmine version                3.3.3.stable
+* Ruby version                   2.3.0-p0 (2015-12-25) [x64-mingw32]
+* Rails version                  4.2.6
+* Environment                    production
+* Database adapter               Mysql2
