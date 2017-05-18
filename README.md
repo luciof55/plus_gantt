@@ -11,9 +11,9 @@ Go to a especific project, then click on "Plus Gantt" item menu. It will be show
 
 The control date will be set to current date, you can change the value to another date, change the other options (months from, start month) and then click the button "Apply". Then the expected progress will change based on the new value of the control date.
 
-**Issues o Versions with no start date or due date no will be rendered**
+**Issues or Versions with no start date or due date will not be rendered**
 
-**Issues whit no estimated time, but with start date o due date will be rendered, but the expected prgress will be 0%**
+**Issues whit no estimated time, but with start date or due date will be rendered, but the expected progress will be 0%**
 
 ## Issue due date calculation.
 
