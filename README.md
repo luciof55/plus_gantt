@@ -1,6 +1,6 @@
-# plus_gantt
+# Plus Gantt
 
-# Plugin for Redmine wich render a project gantt, adding a control date in order to visualize the expected ratio. Also calculate automatically issue due date.
+**Plugin for Redmine wich render a project gantt, adding a control date in order to visualize the expected ratio. Also calculate automatically issue due date.**
 
 
 ## Gantt:
