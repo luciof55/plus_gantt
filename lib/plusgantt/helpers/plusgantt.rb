@@ -214,7 +214,7 @@ module Plusgantt
       end
 
       def render_project(project, options={})
-        render_object_row(project, options)
+        render_object_row(project, options, nil)
         increment_indent(options) do
 		  if @render_versions
 			# render project versions and their issues
@@ -233,11 +233,11 @@ module Plusgantt
       end
 
       def render_version(project, version, options={})
-        render_object_row(version, options)
-        increment_indent(options) do
-          issues = version_issues(project, version)
-          render_issues(issues, options)
-        end
+		issues = version_issues(project, version)
+		render_object_row(version, options, issues)
+		increment_indent(options) do
+			render_issues(issues, options)
+		end
       end
 
       def render_issues(issues, options={})
@@ -248,7 +248,7 @@ module Plusgantt
             ancestors.pop
             decrement_indent(options)
           end
-          render_object_row(issue, options)
+          render_object_row(issue, options, nil)
           unless issue.leaf?
             ancestors << issue
             increment_indent(options)
@@ -257,10 +257,10 @@ module Plusgantt
         decrement_indent(options, ancestors.size)
       end
 
-      def render_object_row(object, options)
+      def render_object_row(object, options, issues=nil)
         class_name = object.class.name.downcase
         send("subject_for_#{class_name}", object, options) unless options[:only] == :lines
-        send("line_for_#{class_name}", object, options) unless options[:only] == :subjects
+        send("line_for_#{class_name}", object, options, issues) unless options[:only] == :subjects
         options[:top] += options[:top_increment]
 		options[:top_gantt] += options[:top_increment_gantt]
         @number_of_rows += 1
@@ -292,11 +292,11 @@ module Plusgantt
         subject(project.name, options, project)
       end
 
-      def line_for_project(project, options)
+      def line_for_project(project, options, issues=nil)
         # Skip projects that don't have a start_date or due date
         if project.is_a?(Project) && project.start_date && project.due_date
           label = project.name
-          line(project.start_date, project.due_date, nil, true, label, options, project)
+          line(project.start_date, project.due_date, nil, true, label, options, project, issues)
         end
       end
 
@@ -304,40 +304,53 @@ module Plusgantt
         subject(version.to_s_with_project, options, version)
       end
 
-      def line_for_version(version, options)
+    def line_for_version(version, options, issues=nil)
         # Skip versions that don't have a start_date
         if version.is_a?(Version) && version.due_date && version.start_date
-          label = "#{h(version)} #{h(version.completed_percent.to_f.round)}%"
-          label = h("#{version.project} -") + label unless @project && @project == version.project
-          line(version.start_date, version.due_date,  version.completed_percent, true, label, options, version)
+			est_progress = calc_version_estimated_progress(version, self.control_date, issues)
+			@cached_label_progress ||= l(:label_progress)
+			@cached_label_expected ||= l(:label_expected_progress)
+			label = "#{@cached_label_progress}: #{version.completed_percent.to_f.round}%. #{@cached_label_expected}: #{est_progress}%"
+			line(version.start_date, version.due_date, version.completed_percent, true, label, options, version, issues)
         end
-      end
+    end
 
-      def subject_for_issue(issue, options)
+    def subject_for_issue(issue, options)
         subject(issue.subject, options, issue)
-      end
+    end
 
-      def line_for_issue(issue, options)
+    def line_for_issue(issue, options, issues=nil)
         # Skip issues that don't have a due_before (due_date or version's due_date)
-        if issue.is_a?(Issue) && issue.due_before
-		  est_progress = calc_estimated_progress(issue, self.control_date)
-		  @cached_label_progress ||= l(:label_progress)
-		  @cached_label_expected ||= l(:label_expected_progress)
-          if options[:format] && options[:format] == 'html'
-			label = "#{@cached_label_progress}: <strong>#{issue.done_ratio}% </strong>. #{@cached_label_expected}: <strong>#{est_progress}%</strong>".html_safe
-		  else
+        if issue.is_a?(Issue)
+			est_progress = calc_estimated_progress(issue, self.control_date)
+			@cached_label_progress ||= l(:label_progress)
+			@cached_label_expected ||= l(:label_expected_progress)
 			label = "#{@cached_label_progress}: #{issue.done_ratio}%. #{@cached_label_expected}: #{est_progress}%"
-		  end
-          markers = !issue.leaf?
-          line(issue.start_date, issue.due_before, issue.done_ratio, markers, label, options, issue)
+			markers = !issue.leaf?
+			line(issue.start_date, issue.due_before, issue.done_ratio, markers, label, options, issue, issues)
         end
-      end
+    end
 
-      def subject(label, options, object=nil)
-        send "#{options[:format]}_subject", options, label, object
-      end
+    def subject(label, options, object=nil)
+		if object
+			case object
+				when Issue
+					if object.start_date && object.due_before
+						send "#{options[:format]}_subject", options, label, object
+					end
+				when Version
+					if object.due_date && object.start_date
+						send "#{options[:format]}_subject", options, label, object
+					end
+				when Project
+					if object.due_date && object.start_date
+						send "#{options[:format]}_subject", options, label, object
+					end
+			end
+		end
+    end
 
-      def line(start_date, end_date, done_ratio, markers, label, options, object=nil)
+    def line(start_date, end_date, done_ratio, markers, label, options, object=nil, issues=nil)
         options[:zoom] ||= 1
         options[:g_width] ||= (self.date_to - self.date_from + 1) * options[:zoom]
 		
@@ -345,9 +358,13 @@ module Plusgantt
 			expected_progress = calc_estimated_progress(object, self.control_date)
 		end
 		
+		if object.is_a?(Version) && issues
+			expected_progress = calc_version_estimated_progress(object, self.control_date, issues)
+		end
+		
         coords = coordinates(start_date, end_date, done_ratio, expected_progress, options[:zoom])
         send "#{options[:format]}_task", options, coords, markers, label, object
-      end
+    end
 
       # Generates a gantt image
       # Only defined if RMagick is avalaible
@@ -611,17 +628,18 @@ module Plusgantt
 			estimated_hours = "<strong>#{@cached_label_estimated_hours}</strong>: #{h(issue.estimated_hours)} h".html_safe + " Total(#{h(issue.total_estimated_hours)} h)<br/>".html_safe
 		else
 			if issue.estimated_hours 
-				estimated_hours = "<strong>#{@cached_label_estimated_hours}</strong>: #{h(issue.estimated_hours)} h<br />".html_safe
+				estimated_hours = "<strong>#{@cached_label_estimated_hours}</strong>: #{h(issue.estimated_hours)} h - ".html_safe
 			else
-				estimated_hours = "<strong>#{@cached_label_estimated_hours}</strong>: 0 h<br />".html_safe
+				estimated_hours = "<strong>#{@cached_label_estimated_hours}</strong>: 0 h - ".html_safe
 			end
 		end
 		
-		"<strong>#{@cached_label_start_date}</strong>: #{format_date(issue.start_date)}<br />".html_safe +
+		view.link_to_issue(issue) + "<br />".html_safe +
+		"<strong>#{@cached_label_start_date}</strong>: #{format_date(issue.start_date)} - ".html_safe +
 		"<strong>#{@cached_label_due_date}</strong>: #{format_date(issue.due_date)}<br />".html_safe +
 		estimated_hours +
-		"<strong>#{@cached_label_hours_per_day}</strong>: #{h(@utils.get_asignacion(issue))}<br />".html_safe +
-		"<strong>#{@cached_label_assigned_to}</strong>: #{h(issue.assigned_to)}<br />".html_safe
+		"<strong>#{@cached_label_hours_per_day}</strong>: #{h(@utils.get_asignacion(issue))} h<br />".html_safe
+		#"<strong>#{@cached_label_assigned_to}</strong>: #{h(issue.assigned_to)}<br />".html_safe
 	  end
 	  
 	  private
@@ -651,26 +669,33 @@ module Plusgantt
                 coords[:bar_progress_end] = self.date_to - self.date_from + 1
               end
             end
-			
+		  end
 			render_bar_late_end = false
 			if expected_progress && progress
 				render_bar_late_end = expected_progress > progress
 			else
-				render_bar_late_end = progress_date < (self.control_date + 1).to_date
+				if expected_progress
+					render_bar_late_end = start_date < (self.control_date + 1).to_date
+				end
 			end
 			
             if render_bar_late_end
               late_date = [self.control_date, end_date].min
-              if late_date > self.date_from && late_date > start_date
+              if late_date > self.date_from && late_date >= start_date
                 if late_date < self.date_to
                   coords[:bar_late_end] = late_date - self.date_from + 1
                 else
                   coords[:bar_late_end] = self.date_to - self.date_from + 1
                 end
               end
-            end
+            
           end
         end
+		
+		if progress && coords[:bar_progress_end] && coords[:bar_late_end]
+			Rails.logger.info("progress: " + progress.to_s + " bar_progress_end: " + coords[:bar_progress_end].to_s + ". bar_late_end: " + coords[:bar_late_end].to_s)
+		end
+		
         # Transforms dates into pixels witdh
         coords.keys.each do |key|
           coords[key] = (coords[key] * zoom).ceil
@@ -678,73 +703,122 @@ module Plusgantt
         coords
       end
 
-      def calc_progress_date(start_date, end_date, progress)
-        start_date + (end_date - start_date + 1) * (progress / 100.0)
-      end
+    def calc_progress_date(start_date, end_date, progress)
+		start_date + (end_date - start_date + 1) * (progress / 100.0)
+    end
 
-	  def calc_estimated_progress(issue, control_date)
-		if control_date >= issue.start_date
-			if control_date >= issue.due_before
-				return 100.0
-			else
-				total_hours = 0.0
-				if issue.leaf?
-					return calc_task_expected_progress(issue, control_date)
+	def calc_estimated_progress(issue, control_date)
+		if issue.start_date && control_date >= issue.start_date
+			if issue.due_before
+				if control_date >= issue.due_before
+					return 100.0
 				else
-					issue.descendants.each do |child_issue|
-						Rails.logger.info("Issue Padre: " + issue.to_s + ". Issue hijo: " + child_issue.to_s)
-						if child_issue.leaf? || (child_issue.estimated_hours && child_issue.estimated_hours.to_d > 0) 
-							total_hours += (calc_task_expected_progress(child_issue, control_date) / 100.0) * child_issue.estimated_hours.to_d
-							Rails.logger.info("Acumulando las horas del hijo según avance: " + total_hours.to_s)
+					total_hours = 0.0
+					if issue.leaf?
+						return calc_task_expected_progress(issue, control_date)
+					else
+						issue.descendants.each do |child_issue|
+							Rails.logger.info("Issue Padre: " + issue.to_s + ". Issue hijo: " + child_issue.to_s)
+							if !child_issue.estimated_hours.nil? 
+								total_hours += (calc_task_expected_progress(child_issue, control_date) / 100.0) * child_issue.estimated_hours.to_d
+								Rails.logger.info("Acumulando las horas del hijo según avance: " + total_hours.to_s)	
+							end
+						end
+						
+						if issue.estimated_hours && issue.estimated_hours.to_d > 0
+							total_hours += (calc_task_expected_progress(issue, control_date) / 100.0) * issue.estimated_hours.to_d
+							Rails.logger.info("Acumulando las horas propias del issue según avance: " + total_hours.to_s)
+						end
+						
+						if issue.total_estimated_hours && issue.total_estimated_hours.to_d > 0
+							estimated_progress = ( (total_hours / issue.total_estimated_hours.to_d ) * 100.0).round(2)
+							if estimated_progress > 100.0
+								estimated_progress = 100.0
+							end
+						else
+							estimated_progress = 0.0
+						end
+						
+						return estimated_progress
+					end
+				end
+			else
+				return 0.0
+			end
+		else
+			return 0.0
+		end
+	end
+ 
+	def calc_task_expected_progress(issue, control_date)
+		if issue.start_date && control_date >= issue.start_date
+			if issue.due_before
+				if control_date >= issue.due_before
+					return 100.0
+				else
+					days = @utils.calc_days_between_date(issue.start_date, control_date)
+					hollidays = @utils.get_hollidays_between(issue.start_date, control_date)
+					Rails.logger.info("Hollydays: " + hollidays.to_s)
+					days -= hollidays.to_i
+					
+					hour_by_day = @utils.get_asignacion(issue)
+					total_hours = hour_by_day * days
+					
+					if issue.estimated_hours && issue.estimated_hours.to_i > 0
+						if total_hours > issue.estimated_hours.to_i
+							return 100.0
+						else
+							return ( ( total_hours / issue.estimated_hours.to_i ) * 100.0).round(2)
+						end
+					else
+						return 0.0
+					end
+				end
+			else
+				return 0.0
+			end
+		else
+			return 0.0
+		end
+	end
+	  
+	def calc_version_estimated_progress(version, control_date, issues)
+		if version.start_date && control_date >= version.start_date
+			if version.due_date
+				if control_date >= version.due_date
+					return 100.0
+				else
+					total_hours = 0.0
+					total_estimated_hours = 0.0
+					issues.each do |issue|
+						if !issue.estimated_hours.nil? 
+							total_hours += (calc_task_expected_progress(issue, control_date) / 100.0) * issue.estimated_hours.to_d
+							total_estimated_hours += issue.estimated_hours.to_d
 						end
 					end
-					
-					if issue.estimated_hours && issue.estimated_hours.to_d > 0
-						total_hours += (calc_task_expected_progress(issue, control_date) / 100.0) * issue.estimated_hours.to_d
-						Rails.logger.info("Acumulando las horas propias del issue según avance: " + total_hours.to_s)
-					end
-					
-					estimated_progress = ( (total_hours / issue.total_estimated_hours.to_d ) * 100.0).round(2)
-					if estimated_progress > 100.0
-						estimated_progress = 100.0
+					if total_estimated_hours.to_d > 0
+						estimated_progress = ( (total_hours / total_estimated_hours.to_d ) * 100.0).round(2)
+						if estimated_progress > 100.0
+							estimated_progress = 100.0
+						end
+					else
+						estimated_progress = 0.0
 					end
 					return estimated_progress
 				end
-			end
-		else
-			return 0.0
-		end
-	  end
- 
-	  def calc_task_expected_progress(issue, control_date)
-		if control_date >= issue.start_date
-			if control_date >= issue.due_before
-				return 100.0
 			else
-				days = @utils.calc_days_between_date(issue.start_date, control_date)
-				hollidays = @utils.get_hollidays_between(issue.start_date, control_date)
-				Rails.logger.info("Hollydays: " + hollidays.to_s)
-				days -= hollidays.to_i
-				
-				hour_by_day = @utils.get_asignacion(issue)
-				total_hours = hour_by_day * days
-				
-				if total_hours > issue.estimated_hours.to_i
-					return 100.0
-				else
-					return ( ( total_hours / issue.estimated_hours.to_i ) * 100.0).round(2)
-				end
+				return 0.0
 			end
 		else
 			return 0.0
 		end
-	  end
+	end
 	  
-      def self.sort_issues!(issues)
+    def self.sort_issues!(issues)
         issues.sort! {|a, b| sort_issue_logic(a) <=> sort_issue_logic(b)}
-      end
+    end
 
-      def self.sort_issue_logic(issue)
+    def self.sort_issue_logic(issue)
         julian_date = Date.new()
         ancesters_start_date = []
         current_issue = issue
@@ -753,7 +827,7 @@ module Plusgantt
           current_issue = current_issue.parent
         end while (current_issue)
         ancesters_start_date
-      end
+    end
 
       def self.sort_versions!(versions)
         versions.sort!
@@ -784,9 +858,9 @@ module Plusgantt
 			when Version
 				version = object
 				s = "".html_safe
-				onclick = "toggleIssue('div-subject-version-" + version.id.to_s + "', '" + version.id.to_s + "', null);return false;"
-				id = "div-subject-version-" + version.id.to_s
-				s << view.content_tag(:div, "-", :id => id.html_safe, :class => "icon icon-only icon-package", :onclick => onclick.html_safe).html_safe
+				onclick = "toggleIssue('span-subject-version-" + version.id.to_s + "', '" + version.id.to_s + "', null);return false;"
+				id = "span-subject-version-" + version.id.to_s
+				s << view.content_tag(:span, "&nbsp".html_safe, :id => id.html_safe, :class => "icon icon-only icon-open-tree", :onclick => onclick.html_safe).html_safe
 				s << view.link_to_version(version).html_safe
 				view.content_tag(:span, s).html_safe
 			when Project
@@ -806,21 +880,24 @@ module Plusgantt
         tag_options = {:style => style}
         case object
 			when Issue
-			  issue = object
-			  css_classes = "issue-subject"
-			  if issue.parent_id
-				css_classes << " subject-issue-" + issue.parent_id.to_s
-			  end
-			  tag_options[:id] = "subject-issue-#{issue.id}"
-			  tag_options[:class] = css_classes
-			  tag_options[:title] = issue.subject
+				issue = object
+				css_classes = "issue-subject"
+				if @render_versions && issue.fixed_version_id
+					css_classes << " subject-issue-" + issue.fixed_version_id.to_s
+				end
+				if issue.parent_id
+					css_classes << " subject-issue-" + issue.parent_id.to_s
+				end
+				tag_options[:id] = "subject-issue-#{issue.id}"
+				tag_options[:class] = css_classes
+				tag_options[:title] = issue.subject
 			when Version
-			  tag_options[:id] = "version-#{object.id}"
-			  tag_options[:class] = "version-name"
+				tag_options[:id] = "version-#{object.id}"
+				tag_options[:class] = "version-name"
 			when Project
-			  tag_options[:class] = "project-name"
+				tag_options[:class] = "project-name"
         end
-        output = view.content_tag(:div, content, tag_options)
+        output = view.content_tag(:div, content, tag_options).html_safe
         @subjects << output
         output
     end
@@ -858,52 +935,34 @@ module Plusgantt
 
       def html_task(params, coords, markers, label, object)
         final_output = ''.html_safe
+		css_class = ''.html_safe
+		style = ''.html_safe
 		if coords[:bar_start] && coords[:bar_end]
 			output = ''
-			top = ''
 			case object
 			  when Project
-				css = "task project"
-				top = "top:0px;"
-				z_index = "z-index: 20"
+				css = "pgtask pgproject"
 			  when Version
-				css = "task version"
-				top = "top:8px;"
-				z_index = "z-index: 20"
+				css = "pgtask pgversion"
 			  when Issue
 				if object.leaf?
-					css = "task leaf"
-					z_index = ""
+					css = "pgtask leaf"
 				else
-					css = "task parent"
-					z_index = "z-index: 20"
+					css = "pgtask parent"
 				end
-				top = "top:8px;"
 			  else
-				css = "task"
-				top = "top:8px;"
-				z_index = ""
+				css = "pgtask"
 			  end
 			# Renders the task bar, with progress and late
 			output = generate_issue_bars(params, coords, object, css)	
 			# Renders the markers
 			if markers
 				if coords[:start]
-					style = ""
-					style << "top:0px;"
-					#style << "left:#{coords[:start]}px;"
-					style << "left:0px;"
-					style << "width:15px;"
-					style << "z-index: 20;"
-					output << view.content_tag(:div, '&nbsp;'.html_safe, :style => style.html_safe, :class => "#{css} marker starting")
+					output << view.content_tag(:div, '&nbsp;'.html_safe, :class => "#{css} marker starting")
 				end
 				if coords[:end]
 					style = ""
-					style << "top:0px;"
-					#style << "left:#{coords[:end] + params[:zoom]}px;"
 					style << "left:#{coords[:bar_end] - coords[:bar_start]}px;"
-					style << "width:15px;"
-					style << "z-index: 20;"
 					output << view.content_tag(:div, '&nbsp;'.html_safe, :style => style.html_safe, :class => "#{css} marker ending")
 				end
 			end
@@ -911,48 +970,30 @@ module Plusgantt
 			if label 
 				label_span = ""
 				style = ""
-				style << "top:0px;"
-				#style << "left:#{(coords[:bar_end] || 0) + 8}px;"
-				style << "left:#{coords[:bar_end] - coords[:bar_start] + 8}px;"
-				style << "width:15px;"
-				style << "z-index: 20;"
 				label_span = view.content_tag(:span, label).html_safe
+				style << "left:#{coords[:bar_end] - coords[:bar_start] + 8}px;"
 				output << view.content_tag(:div, label_span, :style => style, :class => "#{css} label")
 			end
 			# Renders the tooltip
 			if object.is_a?(Issue)
 				s = view.content_tag(:span, render_issue_tooltip(object).html_safe, :class => "tip")
 				style = ""
-				style << "top:0px;"
-				#style << "left:#{coords[:bar_start]}px;"
-				style << "left:0px;"
 				style << "width:#{coords[:bar_end] - coords[:bar_start]}px;"
-				style << "height:12px;"
-				style << "z-index: 30;"
-				output << view.content_tag(:div, s.html_safe, :style => style, :class => "tooltip")
+				output << view.content_tag(:div, s.html_safe, :style => style, :class => "pgtooltip")
 				
-				if @render_versions
-					if object.fixed_version_id
-						css_class = "task-issue-" + object.fixed_version_id.to_s
-					else
-						css_class = ""
-					end
-				else
-					if object.parent_id
-						css_class = "task-issue-" + object.parent_id.to_s
-					else
-						css_class = ""
-					end
+				if @render_versions && object.fixed_version_id
+					css_class << " task-issue-" + object.fixed_version_id.to_s
+				end
+				
+				if object.parent_id
+					css_class << " task-issue-" + object.parent_id.to_s
 				end
 			end
 			
 			style = ""
-			style << "position: relative;"
-			style << top
 			style << "left:#{coords[:bar_start]}px;"
 			style << "width:#{15 + coords[:bar_end] - coords[:bar_start]}px;"
-			style << "height:18px;"
-			style << z_index
+			css_class << " pgtaskcontainer"
 			id = "task-issue-" + object.id.to_s
 			final_output = view.content_tag(:div, output.html_safe, :id => id, :style => style, :class => css_class).html_safe
 			@lines << final_output
@@ -965,23 +1006,23 @@ module Plusgantt
 		if coords[:bar_progress_end]
 			#Tiene avance
 			width = coords[:bar_progress_end] - coords[:bar_start] - 2
-			output << render_bar(0, width, 0, object, true, css + " task_done")
+			output << render_bar(0, width, 0, object, true, css + " pgtask_done")
 			if coords[:bar_late_end] && coords[:bar_progress_end] < coords[:bar_late_end]
 				#Está atrasado
 				left = width
 				width = coords[:bar_late_end] - coords[:bar_progress_end]
-				output << render_bar(left, width, 0, object, false, css + " task_late")
+				output << render_bar(left, width, 0, object, false, css + " pgtask_late")
 				if coords[:bar_late_end] < coords[:bar_end]
 					left += width
 					width = coords[:bar_end] - coords[:bar_late_end]
-					output << render_bar(left, width, 0, object, false, css + " task_todo")
+					output << render_bar(left, width, 0, object, false, css + " pgtask_todo")
 				end
 			else
 				#No Está atrasado
 				if coords[:bar_progress_end] < coords[:bar_end]
 					left = width
 					width = coords[:bar_end] - coords[:bar_progress_end]
-					output << render_bar(left, width, 0, object, false, css + " task_todo")
+					output << render_bar(left, width, 0, object, false, css + " pgtask_todo")
 				end
 			end
 		else
@@ -989,16 +1030,16 @@ module Plusgantt
 			if coords[:bar_late_end]
 				#Está atrasado
 				width = coords[:bar_late_end] - coords[:bar_start] - 2
-				output << render_bar(0, width, 0, object, true, css + " task_late")
+				output << render_bar(0, width, 0, object, true, css + " pgtask_late")
 				if coords[:bar_late_end] < coords[:bar_end]
 					left = width
 					width = coords[:bar_end] - coords[:bar_late_end]
-					output << render_bar(left, width, 0, object, false, css + " task_todo")
+					output << render_bar(left, width, 0, object, false, css + " pgtask_todo")
 				end
 			else
 				#No está atrasado
 				width = coords[:bar_end] - coords[:bar_start] - 2
-				output << render_bar(0, width, 0, object, true, css + " task_todo")
+				output << render_bar(0, width, 0, object, true, css + " pgtask_todo")
 			end
 		end
 		return output
@@ -1122,5 +1163,5 @@ module Plusgantt
         end
       end
     end
-  end
+    end
 end

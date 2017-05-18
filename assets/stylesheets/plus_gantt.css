@@ -2,6 +2,8 @@
 .icon-open-tree { background-image: url(../images/folder_open.png); }
 
 /***** Gantt chart *****/
+.plusgantt_area {position: absolute;left: 0px;}
+
 .plusgantt_hdr {
   position:absolute;
   top:0;
@@ -13,4 +15,66 @@
   overflow: hidden;
 }
 
-.plusgantt_hdr.nwday {background-color:#f1f1f1; color:#999; z-index: 10}
+.plusgantt_hdr.nwday {background-color:#f1f1f1; color:#999;}
+
+.plusgantt_subjects { font-size: 0.8em; }
+.plusgantt_subjects div { line-height:16px;height:16px;overflow:hidden;white-space:nowrap;text-overflow: ellipsis; }
+
+.pgtaskcontainer {position: relative;height:18px;top: 4px;}
+.pgtaskcontainer.pgtask.pgproject {top:0px;}
+
+.pgtask {
+  position: absolute;
+  height:8px;
+  font-size:0.8em;
+  color:#888;
+  padding:0;
+  margin:0;
+  line-height:16px;
+  white-space:nowrap;
+}
+
+.pgtask.label {top:0px; width:15px;}
+.pgtask.label.project, .pgtask.label.version { font-weight: bold; }
+
+.pgtask_late { position: absolute; background:#C0504D url(../images/task_late.png); border: 1px solid #C0504D; }
+.pgtask_done { position: absolute; background:#77933C url(../images/task_done.png); border: 1px solid #77933C; }
+.pgtask_todo { position: absolute; background:#aaa url(../images/task_todo.png); border: 1px solid #aaa; }
+
+.pgtask_todo.parent { background: #888; border: 1px solid #888; height: 3px;}
+.pgtask_late.parent, .pgtask_done.parent {height: 5px;border: 0px;}
+.pgtask.parent.marker {top:0px;}
+.pgtask.parent.marker.starting  { position: absolute; background: url(../images/task_parent_end.png) no-repeat 0 0; width: 8px; height: 16px; margin-left: -4px; left: 0px;}
+.pgtask.parent.marker.ending { position: absolute; background: url(../images/task_parent_end.png) no-repeat 0 0; width: 8px; height: 16px; margin-left: -4px; right: 0px;}
+
+.pgversion.pgtask_late, .pgversion.pgtask_done  { height: 4px; border: 0px;}
+.pgversion.pgtask_todo { height: 4px;background:#aaa url(../images/milestone_todo.png); border: 0px;}
+.pgversion.marker { background-image:url(../images/task_parent_end.png); background-repeat: no-repeat; border: 0; margin-left: -4px; height: 12px; margin-top: 0px;width: 8px;}
+
+.pgproject.pgtask_late, .pgproject.pgtask_done  { height: 4px; border: 0px;}
+.pgproject.pgtask_todo { height: 4px;background:#aaa url(../images/milestone_todo.png); border: 0px;}
+.pgproject.marker {background-image:url(../images/task_parent_end.png);background-repeat: no-repeat;border: 0;margin-left: -4px;height: 12px;margin-top: 0px;width: 8px;}
+
+/***** Tooltips ******/
+.pgtooltip {position:relative;z-index:7;top: 4px;left:0px;height:12px;}
+.pgtooltip:hover {z-index:8;color:#000;}
+.pgtooltip span.tip{position:relative;display: none;text-align:left;top:4px;}
+
+div.pgtooltip:hover span.tip{
+	position:relative;
+	border: 1px solid #ccc;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	-ms-border-radius: 4px;
+	-o-border-radius: 4px;
+	border-radius: 4px;
+	display:block;
+	position:absolute;
+	top:8px;
+	width:270px;
+	background-color:#fff;
+	padding: 4px;
+	font-size: 0.8em;
+	color:#505050;
+	z-index: 8;
+}
