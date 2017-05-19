@@ -29,7 +29,7 @@
           <fieldset>
             <legend><%= l(:label_related_issues) %></legend>
             <label for="draw_relations">
-              <%= check_box 'query', 'draw_relations', :id => 'draw_relations' %>
+              <%= check_box 'query', 'draw_relations', :draw_relations => '0', :id => 'draw_relations' %>
               <% rels = [IssueRelation::TYPE_BLOCKS, IssueRelation::TYPE_PRECEDES] %>
               <% rels.each do |rel| %>
                 <% color = Plusgantt::PlusganttHelper::PlusganttChart::DRAW_TYPES[rel][:color] %>
@@ -37,15 +37,6 @@
                                 :style => "background-color: #{color}") %>
                 <%= l(IssueRelation::TYPES[rel][:name]) %>
               <% end %>
-            </label>
-          </fieldset>
-        </td>
-        <td>
-          <fieldset>
-            <legend><%= l(:label_gantt_progress_line) %></legend>
-            <label for="draw_progress_line">
-              <%= check_box 'query', 'draw_progress_line', :id => 'draw_progress_line' %>
-              <%= l(:label_display) %>
             </label>
           </fieldset>
         </td>
@@ -146,7 +137,13 @@
       style += 'overflow: hidden;'
     %>
     <%= content_tag(:div, "", :style => style, :class => "plusgantt_hdr") %>
-    <%= content_tag(:div, :class => "gantt_subjects") do %>
+	
+	<%
+		style  = ""
+		style += "position: absolute;"
+		style += "top: #{headers_height + 8}px;"
+	%>
+    <%= content_tag(:div, :id => 'div_subjects', :style => style, :class => "plusgantt_subjects") do %>
       <%= @plusgantt.subjects.html_safe %>
     <% end %>
   <% end %>
@@ -340,14 +337,15 @@
 
 <%
   style  = ""
-  style += "position: absolute;"
-  style += "height: #{g_height}px;"
+  #style += "height: #{g_height}px;"
+  style += "height: 0px;"
   style += "top: #{headers_height + 1}px;"
-  style += "left: 0px;"
-  style += "width: #{g_width - 1}px;"
-  style += "z-index: 50;"
+  #style += "width: #{g_width - 1}px;"
+  style += "width: 0px;"
+  css_class = ""
+  css_class = "plusgantt_area"
 %>
-<%= content_tag(:div, '', :style => style, :id => "gantt_draw_area") %>
+<%= content_tag(:div, '', :style => style, :id => "gantt_draw_area", :class => css_class) %>
 </div>
 </td>
 </tr>
@@ -392,6 +390,5 @@
   $(window).resize(drawGanttHandler);
   $(function() {
     $("#draw_relations").change(drawGanttHandler);
-    $("#draw_progress_line").change(drawGanttHandler);
   });
 <% end %>
