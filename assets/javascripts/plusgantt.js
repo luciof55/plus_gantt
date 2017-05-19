@@ -8,6 +8,22 @@ var draw_left;
 
 var rels_stroke_width = 2;
 
+function markupSubject(htmlId) {
+	$("#" + htmlId).addClass('markupSubject');
+}
+
+function unMarkupSubject(htmlId) {
+	$("#" + htmlId).removeClass('markupSubject');
+}
+
+function markupTask(htmlId) {
+	$("#" + htmlId).addClass('markupTask');
+}
+
+function unMarkupTask(htmlId) {
+	$("#" + htmlId).removeClass('markupTask');
+}
+
 function toggleIssue(task, style, action) {
 	draw_gantt.clear();
 	($("#draw_relations").prop('checked', false))
@@ -91,9 +107,9 @@ function drawRelations() {
 		return;
     }
     var issue_height = issue_from.height();
-    var issue_from_top   = issue_from.position().top  + (issue_height / 2);
+    var issue_from_top   = issue_from.position().top  + (issue_height / 2) + 6;
     var issue_from_right = issue_from.position().left - 15 + issue_from.width();
-    var issue_to_top   = issue_to.position().top  + (issue_height / 2);
+    var issue_to_top   = issue_to.position().top  + (issue_height / 2) + 6;
     var issue_to_left  = issue_to.position().left;
     var color = issue_relation_type[element_issue["rel_type"]]["color"];
     var landscape_margin = issue_relation_type[element_issue["rel_type"]]["landscape_margin"];

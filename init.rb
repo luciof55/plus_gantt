@@ -5,7 +5,7 @@ Redmine::Plugin.register :plus_gantt do
   name 'Gantt Plus plugin'
   author 'Lucio Ferrero'
   description 'This is a plugin for Redmine wich render a project gantt adding a control date in order to visualize the expected ratio'
-  version '0.0.1'
+  version '0.0.3'
   url ''
   author_url 'https://www.linkedin.com/in/lucioferrero/'
   

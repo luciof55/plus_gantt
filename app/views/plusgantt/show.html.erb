@@ -137,7 +137,13 @@
       style += 'overflow: hidden;'
     %>
     <%= content_tag(:div, "", :style => style, :class => "plusgantt_hdr") %>
-    <%= content_tag(:div, :class => "plusgantt_subjects") do %>
+	
+	<%
+		style  = ""
+		style += "position: absolute;"
+		style += "top: #{headers_height + 8}px;"
+	%>
+    <%= content_tag(:div, :id => 'div_subjects', :style => style, :class => "plusgantt_subjects") do %>
       <%= @plusgantt.subjects.html_safe %>
     <% end %>
   <% end %>

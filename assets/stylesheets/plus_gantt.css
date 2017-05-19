@@ -18,9 +18,16 @@
 .plusgantt_hdr.nwday {background-color:#f1f1f1; color:#999;}
 
 .plusgantt_subjects { font-size: 0.8em; }
-.plusgantt_subjects div { line-height:16px;height:16px;overflow:hidden;white-space:nowrap;text-overflow: ellipsis; }
+.plusgantt_subjects div {line-height:16px;height: 18px;overflow:hidden;white-space:nowrap;text-overflow: ellipsis;}
 
-.pgtaskcontainer {position: relative;height:18px;top: 4px;}
+.pgissue-subject, .pgversion-name {position: relative;height:18px;top:0px;}
+.pgproject-name {position: relative;height:18px;top: 0px;}
+
+.markupSubject { box-shadow: inset 0px 0px 1px 1px #888;background-color: #ffffdd;}
+
+.markupTask { box-shadow: inset 0px 0px 1px 1px #888;background-color: #e4e4e4;}
+
+.pgtaskcontainer {position: relative;height:18px;top: 0px;}
 .pgtaskcontainer.pgtask.pgproject {top:0px;}
 
 .pgtask {
@@ -32,28 +39,29 @@
   margin:0;
   line-height:16px;
   white-space:nowrap;
+  top: 4px;
 }
 
 .pgtask.label {top:0px; width:15px;}
 .pgtask.label.project, .pgtask.label.version { font-weight: bold; }
 
 .pgtask_late { position: absolute; background:#C0504D url(../images/task_late.png); border: 1px solid #C0504D; }
-.pgtask_done { position: absolute; background:#77933C url(../images/task_done.png); border: 1px solid #77933C; }
+.pgtask_done {position: absolute;background:#77933C url(../images/task_done.png);border: 1px solid #77933C;}
 .pgtask_todo { position: absolute; background:#aaa url(../images/task_todo.png); border: 1px solid #aaa; }
 
 .pgtask_todo.parent { background: #888; border: 1px solid #888; height: 3px;}
 .pgtask_late.parent, .pgtask_done.parent {height: 5px;border: 0px;}
-.pgtask.parent.marker {top:0px;}
+.pgtask.parent.marker {top: 4px;}
 .pgtask.parent.marker.starting  { position: absolute; background: url(../images/task_parent_end.png) no-repeat 0 0; width: 8px; height: 16px; margin-left: -4px; left: 0px;}
 .pgtask.parent.marker.ending { position: absolute; background: url(../images/task_parent_end.png) no-repeat 0 0; width: 8px; height: 16px; margin-left: -4px; right: 0px;}
 
 .pgversion.pgtask_late, .pgversion.pgtask_done  { height: 4px; border: 0px;}
 .pgversion.pgtask_todo { height: 4px;background:#aaa url(../images/milestone_todo.png); border: 0px;}
-.pgversion.marker { background-image:url(../images/task_parent_end.png); background-repeat: no-repeat; border: 0; margin-left: -4px; height: 12px; margin-top: 0px;width: 8px;}
+.pgversion.marker { background-image:url(../images/task_parent_end.png); background-repeat: no-repeat; border: 0; margin-left: -4px; height: 12px; top: 4px;width: 8px;}
 
 .pgproject.pgtask_late, .pgproject.pgtask_done  { height: 4px; border: 0px;}
 .pgproject.pgtask_todo { height: 4px;background:#aaa url(../images/milestone_todo.png); border: 0px;}
-.pgproject.marker {background-image:url(../images/task_parent_end.png);background-repeat: no-repeat;border: 0;margin-left: -4px;height: 12px;margin-top: 0px;width: 8px;}
+.pgproject.marker {background-image:url(../images/task_parent_end.png);background-repeat: no-repeat;border: 0;margin-left: -4px;height: 12px;top: 4px;width: 8px;}
 
 /***** Tooltips ******/
 .pgtooltip {position:relative;z-index:7;top: 4px;left:0px;height:12px;}

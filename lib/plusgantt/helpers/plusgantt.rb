@@ -193,9 +193,7 @@ module Plusgantt
       end
 
       def render(options={})
-        options = {:top => 0, :top_gantt => 0, :top_increment => 2, :top_increment_gantt => 9,
-                   :indent_increment => 20, :render => :subject,
-                   :format => :html}.merge(options)
+        options = {:top => 0, :top_increment => 20, :indent_increment => 20, :render => :subject, :format => :html}.merge(options)
         indent = options[:indent] || 4
         @subjects = '' unless options[:only] == :lines
         @lines = '' unless options[:only] == :subjects
@@ -261,12 +259,24 @@ module Plusgantt
         class_name = object.class.name.downcase
         send("subject_for_#{class_name}", object, options) unless options[:only] == :lines
         send("line_for_#{class_name}", object, options, issues) unless options[:only] == :subjects
-        options[:top] += options[:top_increment]
-		options[:top_gantt] += options[:top_increment_gantt]
-        @number_of_rows += 1
-        if @max_rows && @number_of_rows >= @max_rows
-          raise MaxLinesLimitReached
-        end
+        
+		increment_row = false
+		case object
+			when Issue
+				increment_row = object.start_date && object.due_before
+			when Version
+				increment_row = object.due_date && object.start_date
+			when Project
+				increment_row = object.due_date && object.start_date
+		end
+		
+		if increment_row
+			options[:top] += options[:top_increment]
+			@number_of_rows += 1
+			if @max_rows && @number_of_rows >= @max_rows
+			  raise MaxLinesLimitReached
+			end
+		end
       end
 
       def render_end(options={})
@@ -321,7 +331,7 @@ module Plusgantt
 
     def line_for_issue(issue, options, issues=nil)
         # Skip issues that don't have a due_before (due_date or version's due_date)
-        if issue.is_a?(Issue)
+        if issue.is_a?(Issue) && issue.start_date && issue.due_before
 			est_progress = calc_estimated_progress(issue, self.control_date)
 			@cached_label_progress ||= l(:label_progress)
 			@cached_label_expected ||= l(:label_expected_progress)
@@ -599,7 +609,6 @@ module Plusgantt
           :indent => 0,
           :indent_increment => 5,
           :top_increment => 5,
-		  :top_increment_gantt => 5,
           :format => :pdf,
           :pdf => pdf
         }
@@ -851,10 +860,12 @@ module Plusgantt
 				if issue.descendants.count > 0
 					onclick = "toggleIssue('span-subject-issue-" + issue.id.to_s + "', '" + issue.id.to_s + "', null);return false;"
 				end
+				onMouseOut = "unMarkupTask('task-issue-" + object.id.to_s + "'); return false;"
+				onMouseOver = "markupTask('task-issue-" + object.id.to_s + "'); return false;"
 				id = "span-subject-issue-" + issue.id.to_s
 				s << view.content_tag(:span, "&nbsp;".html_safe, :id => id.html_safe, :class => "icon icon-only icon-open-tree", :onclick => onclick).html_safe
 				s << view.link_to_issue(issue).html_safe
-				view.content_tag(:span, s).html_safe
+				view.content_tag(:span, s, :onmouseover => onMouseOver.html_safe, :onmouseout => onMouseOut.html_safe).html_safe
 			when Version
 				version = object
 				s = "".html_safe
@@ -874,14 +885,14 @@ module Plusgantt
     end
 
     def html_subject(params, subject, object)
-        style = "position: relative;top:#{params[:top]}px;left:#{params[:indent]}px;height=18px;"
+        style = "left:#{params[:indent]}px;"
         style << "width:#{params[:subject_width] - params[:indent]}px;" if params[:subject_width]
         content = html_subject_content(object) || subject
         tag_options = {:style => style}
         case object
 			when Issue
 				issue = object
-				css_classes = "issue-subject"
+				css_classes = "pgissue-subject"
 				if @render_versions && issue.fixed_version_id
 					css_classes << " subject-issue-" + issue.fixed_version_id.to_s
 				end
@@ -893,9 +904,9 @@ module Plusgantt
 				tag_options[:title] = issue.subject
 			when Version
 				tag_options[:id] = "version-#{object.id}"
-				tag_options[:class] = "version-name"
+				tag_options[:class] = "pgversion-name"
 			when Project
-				tag_options[:class] = "project-name"
+				tag_options[:class] = "pgproject-name"
         end
         output = view.content_tag(:div, content, tag_options).html_safe
         @subjects << output
@@ -990,12 +1001,14 @@ module Plusgantt
 				end
 			end
 			
+			onMouseOut = "unMarkupSubject('subject-issue-" + object.id.to_s + "'); return false;"
+			onMouseOver = "markupSubject('subject-issue-" + object.id.to_s + "'); return false;"
 			style = ""
 			style << "left:#{coords[:bar_start]}px;"
-			style << "width:#{15 + coords[:bar_end] - coords[:bar_start]}px;"
+			style << "width:#{coords[:bar_end] - coords[:bar_start]}px;"
 			css_class << " pgtaskcontainer"
 			id = "task-issue-" + object.id.to_s
-			final_output = view.content_tag(:div, output.html_safe, :id => id, :style => style, :class => css_class).html_safe
+			final_output = view.content_tag(:div, output.html_safe, :id => id, :style => style, :class => css_class, :onmouseover => onMouseOver.html_safe, :onmouseout => onMouseOut.html_safe).html_safe
 			@lines << final_output
 		end
         return final_output
@@ -1006,23 +1019,23 @@ module Plusgantt
 		if coords[:bar_progress_end]
 			#Tiene avance
 			width = coords[:bar_progress_end] - coords[:bar_start] - 2
-			output << render_bar(0, width, 0, object, true, css + " pgtask_done")
+			output << render_bar(0, width, object, true, css + " pgtask_done")
 			if coords[:bar_late_end] && coords[:bar_progress_end] < coords[:bar_late_end]
 				#Está atrasado
 				left = width
 				width = coords[:bar_late_end] - coords[:bar_progress_end]
-				output << render_bar(left, width, 0, object, false, css + " pgtask_late")
+				output << render_bar(left, width, object, false, css + " pgtask_late")
 				if coords[:bar_late_end] < coords[:bar_end]
 					left += width
 					width = coords[:bar_end] - coords[:bar_late_end]
-					output << render_bar(left, width, 0, object, false, css + " pgtask_todo")
+					output << render_bar(left, width, object, false, css + " pgtask_todo")
 				end
 			else
 				#No Está atrasado
 				if coords[:bar_progress_end] < coords[:bar_end]
 					left = width
 					width = coords[:bar_end] - coords[:bar_progress_end]
-					output << render_bar(left, width, 0, object, false, css + " pgtask_todo")
+					output << render_bar(left, width, object, false, css + " pgtask_todo")
 				end
 			end
 		else
@@ -1030,24 +1043,23 @@ module Plusgantt
 			if coords[:bar_late_end]
 				#Está atrasado
 				width = coords[:bar_late_end] - coords[:bar_start] - 2
-				output << render_bar(0, width, 0, object, true, css + " pgtask_late")
+				output << render_bar(0, width, object, true, css + " pgtask_late")
 				if coords[:bar_late_end] < coords[:bar_end]
 					left = width
 					width = coords[:bar_end] - coords[:bar_late_end]
-					output << render_bar(left, width, 0, object, false, css + " pgtask_todo")
+					output << render_bar(left, width, object, false, css + " pgtask_todo")
 				end
 			else
 				#No está atrasado
 				width = coords[:bar_end] - coords[:bar_start] - 2
-				output << render_bar(0, width, 0, object, true, css + " pgtask_todo")
+				output << render_bar(0, width, object, true, css + " pgtask_todo")
 			end
 		end
 		return output
 	end
 	
-	def render_bar(left, width, top, object, render_rel, css)	
+	def render_bar(left, width, object, render_rel, css)	
 		style = ""
-		style << "top:#{top}px;"
 		style << "left:#{left}px;"
 		style << "width:#{width}px;"
 		content_opt = {:style => style, :class => "#{css}"}
@@ -1073,18 +1085,18 @@ module Plusgantt
         height /= 2 if markers
         # Renders the task bar, with progress and late
         if coords[:bar_start] && coords[:bar_end]
-          params[:pdf].SetY(params[:top_gantt] + 1.5)
+          params[:pdf].SetY(params[:top] + 1.5)
           params[:pdf].SetX(params[:subject_width] + coords[:bar_start])
           params[:pdf].SetFillColor(200, 200, 200)
           params[:pdf].RDMCell(coords[:bar_end] - coords[:bar_start], height, "", 0, 0, "", 1)
           if coords[:bar_late_end]
-            params[:pdf].SetY(params[:top_gantt] + 1.5)
+            params[:pdf].SetY(params[:top] + 1.5)
             params[:pdf].SetX(params[:subject_width] + coords[:bar_start])
             params[:pdf].SetFillColor(255, 100, 100)
             params[:pdf].RDMCell(coords[:bar_late_end] - coords[:bar_start], height, "", 0, 0, "", 1)
           end
           if coords[:bar_progress_end]
-            params[:pdf].SetY(params[:top_gantt] + 1.5)
+            params[:pdf].SetY(params[:top] + 1.5)
             params[:pdf].SetX(params[:subject_width] + coords[:bar_start])
             params[:pdf].SetFillColor(90, 200, 90)
             params[:pdf].RDMCell(coords[:bar_progress_end] - coords[:bar_start], height, "", 0, 0, "", 1)
@@ -1093,14 +1105,14 @@ module Plusgantt
         # Renders the markers
         if markers
           if coords[:start]
-            params[:pdf].SetY(params[:top_gantt] + 1)
+            params[:pdf].SetY(params[:top] + 1)
             params[:pdf].SetX(params[:subject_width] + coords[:start] - 1)
             params[:pdf].SetFillColor(50, 50, 200)
             params[:pdf].RDMCell(2, 2, "", 0, 0, "", 1)
           end
           if coords[:end]
-            params[:pdf].SetY(params[:top_gantt] + 1)
-            params[:pdf].SetX(params[:subject_width] + coords[:end] - 1)
+            params[:pdf].SetY(params[:top] + 1)
+            params[:pdf].SetX(params[:subject_width] + (coords[:bar_end] || 0))
             params[:pdf].SetFillColor(50, 50, 200)
             params[:pdf].RDMCell(2, 2, "", 0, 0, "", 1)
           end
@@ -1120,36 +1132,28 @@ module Plusgantt
         # Renders the task bar, with progress and late
         if coords[:bar_start] && coords[:bar_end]
           params[:image].fill('#aaa')
-          params[:image].rectangle(params[:subject_width] + coords[:bar_start],
-                                   params[:top_gantt],
-                                   params[:subject_width] + coords[:bar_end],
-                                   params[:top_gantt] - height)
+          params[:image].rectangle(params[:subject_width] + coords[:bar_start], params[:top], params[:subject_width] + coords[:bar_end],
+            params[:top] - height)
           if coords[:bar_late_end]
             params[:image].fill('#f66')
-            params[:image].rectangle(params[:subject_width] + coords[:bar_start],
-                                     params[:top_gantt],
-                                     params[:subject_width] + coords[:bar_late_end],
-                                     params[:top_gantt] - height)
+            params[:image].rectangle(params[:subject_width] + coords[:bar_start], params[:top], params[:subject_width] + coords[:bar_late_end], params[:top] - height)
           end
           if coords[:bar_progress_end]
             params[:image].fill('#00c600')
-            params[:image].rectangle(params[:subject_width] + coords[:bar_start],
-                                     params[:top_gantt],
-                                     params[:subject_width] + coords[:bar_progress_end],
-                                     params[:top_gantt] - height)
+            params[:image].rectangle(params[:subject_width] + coords[:bar_start], params[:top], params[:subject_width] + coords[:bar_progress_end], params[:top] - height)
           end
         end
         # Renders the markers
         if markers
           if coords[:start]
             x = params[:subject_width] + coords[:start]
-            y = params[:top_gantt] - height / 2
+            y = params[:top] - height / 2
             params[:image].fill('blue')
             params[:image].polygon(x - 4, y, x, y - 4, x + 4, y, x, y + 4)
           end
           if coords[:end]
             x = params[:subject_width] + coords[:end] + params[:zoom]
-            y = params[:top_gantt] - height / 2
+            y = params[:top] - height / 2
             params[:image].fill('blue')
             params[:image].polygon(x - 4, y, x, y - 4, x + 4, y, x, y + 4)
           end
@@ -1157,9 +1161,7 @@ module Plusgantt
         # Renders the label on the right
         if label
           params[:image].fill('black')
-          params[:image].text(params[:subject_width] + (coords[:bar_end] || 0) + 5,
-                              params[:top_gantt] + 1,
-                              label)
+          params[:image].text(params[:subject_width] + (coords[:bar_end] || 0) + 5, params[:top] + 1, label)
         end
       end
     end
