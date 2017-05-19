@@ -1,0 +1,12 @@
+# Simplified Chinese strings go here for Rails i18n
+zh:
+  label_plusgantt: Plus Gantt
+  label_control_date: 基准日期
+  label_progress: 已完成
+  label_expected_progress: 预期
+  label_render_versions: 只包含版本
+  label_hours_per_day: 每日工时
+  label_hollidays: 假期
+  label_calculate_end_date: 计算问题完成日期
+  label_help_end_date: 若选中，将会计算完成日期。必须填写问题的预估工时和计划完成日期字段。
+  label_help_hours_per_day: 该值预估计算问题的完成周期。每天的非工作时间定义是从先从问题的自定义字段 "asignacion" 中获得，其次是来自于用户的自定义字段 "asignacion" ，再次来自于项目的自定义字段"asignacion"。若都不存在，则直接使用该值计算。
