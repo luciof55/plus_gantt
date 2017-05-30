@@ -74,6 +74,47 @@ function toggleIssue(task, style, action) {
 	}
 }
 
+function toggleProject(project, project_id, action) {
+	draw_gantt.clear();
+	($("#draw_relations").prop('checked', false))
+	if (action == 'hide') {
+		hide = true;
+		$("#" + project).val('+');
+	} else {
+		if (action == 'show') {
+			hide = false;
+			$("#" + project).val('-');
+		} else {
+			if ($("#" + project).val() == '-' || $("#" + project).val() == '' || $("#" + project).val() == undefined) {
+				hide = true;
+				$("#" + project).val('+');
+				action = 'hide';
+			} else {
+				hide = false;
+				$("#" + project).val('-');
+				action = 'show';
+			}
+		}
+	};
+	
+	$.each($("div.project-" + project_id), function(index, element) {
+		var element_id = $(element).attr("id");
+		if (element_id != null) {
+			if (hide) {
+				$("#" + element_id).fadeOut();
+			} else {
+				$("#" + element_id).fadeIn();
+			}
+		};
+	});
+	
+	if (action == '' || action == null) {
+		if ($("#draw_relations").prop('checked')) {
+			drawRelations();
+		}
+	}
+}
+
 function setDrawArea() {
   draw_top   = $("#gantt_draw_area").position().top;
   draw_right = $("#gantt_draw_area").width();
@@ -121,13 +162,13 @@ function drawRelations() {
                           "stroke-width": rels_stroke_width
                           });
     if (issue_from_right_rel < issue_to_left_rel) {
-      draw_gantt.path(["M", issue_from_right_rel + draw_left, issue_from_top,
-                       "L", issue_from_right_rel + draw_left, issue_to_top])
+      draw_gantt.path(["M", issue_from_right_rel, issue_from_top,
+                       "L", issue_from_right_rel, issue_to_top])
                      .attr({stroke: color,
                           "stroke-width": rels_stroke_width
                           });
-      draw_gantt.path(["M", issue_from_right_rel + draw_left, issue_to_top,
-                       "L", issue_to_left + draw_left,        issue_to_top])
+      draw_gantt.path(["M", issue_from_right_rel, issue_to_top,
+                       "L", issue_to_left, issue_to_top])
                      .attr({stroke: color,
                           "stroke-width": rels_stroke_width
                           });
@@ -135,28 +176,28 @@ function drawRelations() {
       var issue_middle_top = issue_to_top +
                                 (issue_height *
                                    ((issue_from_top > issue_to_top) ? 1 : -1));
-      draw_gantt.path(["M", issue_from_right_rel + draw_left, issue_from_top,
-                       "L", issue_from_right_rel + draw_left, issue_middle_top])
+      draw_gantt.path(["M", issue_from_right_rel, issue_from_top,
+                       "L", issue_from_right_rel, issue_middle_top])
                      .attr({stroke: color,
                           "stroke-width": rels_stroke_width
                           });
-      draw_gantt.path(["M", issue_from_right_rel + draw_left, issue_middle_top,
-                       "L", issue_to_left_rel + draw_left,    issue_middle_top])
+      draw_gantt.path(["M", issue_from_right_rel, issue_middle_top,
+                       "L", issue_to_left_rel,    issue_middle_top])
                      .attr({stroke: color,
                           "stroke-width": rels_stroke_width
                           });
-      draw_gantt.path(["M", issue_to_left_rel + draw_left, issue_middle_top,
-                       "L", issue_to_left_rel + draw_left, issue_to_top])
+      draw_gantt.path(["M", issue_to_left_rel, issue_middle_top,
+                       "L", issue_to_left_rel, issue_to_top])
                      .attr({stroke: color,
                           "stroke-width": rels_stroke_width
                           });
-      draw_gantt.path(["M", issue_to_left_rel + draw_left, issue_to_top,
-                       "L", issue_to_left + draw_left,     issue_to_top])
+      draw_gantt.path(["M", issue_to_left_rel, issue_to_top,
+                       "L", issue_to_left, issue_to_top])
                      .attr({stroke: color,
                           "stroke-width": rels_stroke_width
                           });
     }
-    draw_gantt.path(["M", issue_to_left + draw_left, issue_to_top,
+    draw_gantt.path(["M", issue_to_left, issue_to_top,
                      "l", -4 * rels_stroke_width, -2 * rels_stroke_width,
                      "l", 0, 4 * rels_stroke_width, "z"])
                    .attr({stroke: "none",

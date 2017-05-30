@@ -64,7 +64,7 @@
 .pgproject.marker {background-image:url(../images/task_parent_end.png);background-repeat: no-repeat;border: 0;margin-left: -4px;height: 12px;top: 4px;width: 8px;}
 
 /***** Tooltips ******/
-.pgtooltip {position:relative;z-index:7;top: 4px;left:0px;height:12px;}
+.pgtooltip {position:relative;z-index:7;top: 8px;left:0px;height:12px;}
 .pgtooltip:hover {z-index:8;color:#000;}
 .pgtooltip span.tip{position:relative;display: none;text-align:left;top:4px;}
 

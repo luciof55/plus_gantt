@@ -74,6 +74,13 @@
 <% end %>
 <table>
   <tbody>
+	 <tr>
+      <th><%= l(:label_months_amount) %></th>
+      <td>
+	    <%= text_field_tag 'settings[months]', Plusgantt.months, :size => 2 %>
+		<%= l(:label_help_months_amount) %>
+      </td>
+    </tr>
     <tr>
       <th><%= l(:label_hours_per_day) %></th>
       <td>

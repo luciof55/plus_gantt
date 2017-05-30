@@ -7,6 +7,16 @@ en:
   label_render_versions: Only versions
   label_hours_per_day: Hours per day
   label_hollidays: Hollidays
-  label_calculate_end_date: Calculate issue end date
+  label_calculate_end_date: Automatically calculate issue end date 
   label_help_end_date: if checked, the issue end date will be calculated. Estimated hours and end date are required.
   label_help_hours_per_day: This value is used to calculate issue duration. Firts hours per day are taked from custom field "asignacion" at issue level, then at user level, then at project level. If none are present this value will be used.
+  label_calculate_issue_desactivated: Issue end date calculation is not activated, go to Configuration Page.
+  label_help_recalculate_issue_end_date: if option for calculate automatically end date is activated, the issue end date will be recalculated basis on  hollidays and hour per day.
+  button_recalculate: Recalculate issue end date
+  label_pg_dashboard: Dashboard
+  label_plusgantt_chart: Gantt Chart
+  label_module_not_enabled: Module Plus Gantt is not enabled
+  label_months_amount: Months
+  label_help_months_amount: Amount of Months to render
+  label_error_recalculate: An error has occurred while recalculate issues end date. Please check Redmine logs for details.
+  
