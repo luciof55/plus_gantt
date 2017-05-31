@@ -12,9 +12,10 @@ class PlusganttController < ApplicationController
   helper :sort
   include SortHelper
   include Redmine::Export::PDF
-  include Plusgantt::PlusganttHelper
+  include PlusganttChartHelper
 
   def show
+	params.store('main_project', @project)
     @plusgantt = PlusganttChart.new(params)
     @plusgantt.project = @project
     retrieve_query

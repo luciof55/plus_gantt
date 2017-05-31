@@ -6,7 +6,7 @@
 <% end %>
 </div>
 
-<h2><%= @query.new_record? ? l(:label_gantt) : @query.name %></h2>
+<h2><%= l(:label_gantt) %></h2>
 
 <%= form_tag({:controller => 'plusgantt', :action => 'show',
              :project_id => @project, :month => params[:month],
@@ -14,12 +14,28 @@
              :method => :get, :id => 'query_form') do %>
 <%= hidden_field_tag 'set_filter', '1' %>
 <%= hidden_field_tag 'plusgantt', '1' %>
-<fieldset id="filters" class="collapsible <%= @query.new_record? ? "" : "collapsed" %>">
+
+
+<p class="buttons">
+<%= text_field_tag 'months', @plusgantt.months, :size => 2 %>
+<%= l(:label_months_from) %> <%= select_month(@plusgantt.month_from, :prefix => "month", :discard_type => true) %>
+<%= select_year(@plusgantt.year_from, :prefix => "year", :discard_type => true) %>
+<%= hidden_field_tag 'zoom', @plusgantt.zoom %>
+<%= l(:label_control_date) %> <%= date_field_tag 'control_date', @plusgantt.control_date %>
+<%= l(:label_render_versions) %> <%= check_box_tag 'render_versions', '1', @plusgantt.render_versions %>
+<%= link_to_function l(:button_apply), '$("#query_form").submit()', :class => 'icon icon-checked' %>
+<%= link_to l(:button_clear), { :project_id => @project, :set_filter => 1 }, :class => 'icon icon-reload' %>
+<% if @query.new_record? && User.current.allowed_to?(:save_queries, @project, :global => true) %>
+  <%= link_to_function l(:button_save), "$('#query_form').attr('action', '#{ @project ? new_project_query_path(@project) : new_query_path }').submit();", :class => 'icon icon-save' %>
+<% end %>
+
+<fieldset id="filters" class="collapsible collapsed">
   <legend onclick="toggleFieldset(this);"><%= l(:label_filter_plural) %></legend>
   <div style="<%= @query.new_record? ? "" : "display: none;" %>">
     <%= render :partial => 'queries/filters', :locals => {:query => @query} %>
   </div>
 </fieldset>
+
 <fieldset id="options" class="collapsible collapsed">
   <legend onclick="toggleFieldset(this);"><%= l(:label_options) %></legend>
   <div style="display: none;">
@@ -32,7 +48,7 @@
               <%= check_box 'query', 'draw_relations', :draw_relations => '0', :id => 'draw_relations' %>
               <% rels = [IssueRelation::TYPE_BLOCKS, IssueRelation::TYPE_PRECEDES] %>
               <% rels.each do |rel| %>
-                <% color = Plusgantt::PlusganttHelper::PlusganttChart::DRAW_TYPES[rel][:color] %>
+                <% color = PlusganttChartHelper::PlusganttChart::DRAW_TYPES[rel][:color] %>
                 <%= content_tag(:span, '&nbsp;&nbsp;&nbsp;'.html_safe,
                                 :style => "background-color: #{color}") %>
                 <%= l(IssueRelation::TYPES[rel][:name]) %>
@@ -45,23 +61,6 @@
   </div>
 </fieldset>
 
-
-
-<p class="buttons">
-<%= text_field_tag 'months', @plusgantt.months, :size => 2 %>
-<%= l(:label_months_from) %>
-<%= select_month(@plusgantt.month_from, :prefix => "month", :discard_type => true) %>
-<%= select_year(@plusgantt.year_from, :prefix => "year", :discard_type => true) %>
-<%= hidden_field_tag 'zoom', @plusgantt.zoom %>
-<%= l(:label_control_date) %>
-<%= date_field_tag 'control_date', @plusgantt.control_date %>
-<%= l(:label_render_versions) %>
-<%= check_box_tag 'render_versions', '1', @plusgantt.render_versions %>
-<%= link_to_function l(:button_apply), '$("#query_form").submit()', :class => 'icon icon-checked' %>
-<%= link_to l(:button_clear), { :project_id => @project, :set_filter => 1 }, :class => 'icon icon-reload' %>
-<% if @query.new_record? && User.current.allowed_to?(:save_queries, @project, :global => true) %>
-  <%= link_to_function l(:button_save), "$('#query_form').attr('action', '#{ @project ? new_project_query_path(@project) : new_query_path }').submit();", :class => 'icon icon-save' %>
-<% end %>
 <div class="contextual">
   <%= gantt_zoom_link(@plusgantt, :in) %>
   <%= gantt_zoom_link(@plusgantt, :out) %>
@@ -126,8 +125,10 @@
       style += "width: #{subject_width}px;"
       style += "height: #{headers_height}px;"
       style += 'background: #eee;'
+	  style += 'text-align: center;'
+	  text = '<h2>' + l(:label_plusgantt) + '</h2>'
     %>
-    <%= content_tag(:div, "", :style => style, :class => "plusgantt_hdr") %>
+    <%= content_tag(:div, text.html_safe, :style => style, :class => "plusgantt_hdr") %>
     <%
       style  = ""
       style += "right:-2px;"
@@ -337,11 +338,9 @@
 
 <%
   style  = ""
-  #style += "height: #{g_height}px;"
-  style += "height: 0px;"
+  style += "height: #{g_height}px;"
   style += "top: #{headers_height + 1}px;"
-  #style += "width: #{g_width - 1}px;"
-  style += "width: 0px;"
+  style += "width: #{g_width - 1}px;"
   css_class = ""
   css_class = "plusgantt_area"
 %>
@@ -385,7 +384,7 @@
 <% end %>
 
 <%= javascript_tag do %>
-  var issue_relation_type = <%= raw Plusgantt::PlusganttHelper::PlusganttChart::DRAW_TYPES.to_json %>;
+  var issue_relation_type = <%= raw PlusganttChartHelper::PlusganttChart::DRAW_TYPES.to_json %>;
   $(document).ready(drawGanttHandler);
   $(window).resize(drawGanttHandler);
   $(function() {

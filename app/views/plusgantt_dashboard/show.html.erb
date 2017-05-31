@@ -1,0 +1,34 @@
+<h2><%= l(:label_plusgantt) %></h2>
+
+<p><%= l(:label_help_recalculate_issue_end_date) %></p>
+
+<% if !Plusgantt.calculate_end_date %>
+	<%= link_to l(:label_calculate_issue_desactivated), '/settings/plugin/plus_gantt', :class => 'pglink' %><br>
+<% end %>
+
+<% if Plusgantt.calculate_end_date %>
+	<%= form_tag({:controller => 'plusgantt_dashboard', :action => 'calculate', :project_id => @project}, :method => :post, :id => 'recalculate_form') do %>
+		<table>
+			<tbody>
+				<tr>
+					<th><%= link_to l(:label_plusgantt_chart), {:controller => "plusgantt", :action => "show", :project_id => @project} %></th>
+					<th><%= link_to 'Settings', '/settings/plugin/plus_gantt', :class => 'pglink' %></th>
+				</tr>
+				<tr>
+					<th><h3><%= @project.name %></h3></th>
+					<th>
+						<%= link_to_function l(:button_recalculate), '$("#recalculate_form").submit()', :class => 'icon icon-checked' %>
+					</th>
+				</tr>
+			</tbody>
+		</table>
+	<% end #form%>
+<% end %>
+
+<% content_for :sidebar do %>
+  <%= render :partial => 'issues/sidebar' %>
+<% end %>
+
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag "plus_gantt.css", :plugin => "plus_gantt" %>
+<% end %>

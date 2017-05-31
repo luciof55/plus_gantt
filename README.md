@@ -3,6 +3,9 @@
 
 [![Rate at redmine.org](http://img.shields.io/badge/rate%20at-redmine.org-blue.svg?style=flat)](http://www.redmine.org/plugins/plus_gantt)
 
+[![Follow on Linkedin](https://aib.msu.edu/graphics/linked_in.png)](https://www.linkedin.com/in/lucioferrero/)
+[![Follow on Twiter](https://aib.msu.edu/graphics/twitter_logo.png)](https://twitter.com/luciof55/)
+
 **Plugin for Redmine wich render a project gantt, adding a control date in order to visualize the expected ratio. Also calculate automatically issue due date.**
 
 ## Gantt:

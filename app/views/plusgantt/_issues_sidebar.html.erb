@@ -1,3 +1,7 @@
 <% if User.current.allowed_to?(:view_plusgantt, @project, :global => true) %>
-<%= link_to l(:label_plusgantt), {:controller => "plusgantt", :action => "show", :project_id => @project} %><br>
+<h3><%= l(:label_plusgantt) %></h3>
+<%= '&nbsp;&nbsp;'.html_safe %>
+<%= link_to l(:label_pg_dashboard), {:controller => "plusgantt_dashboard", :action => "show", :project_id => @project} %><br>
+<%= '&nbsp;&nbsp;'.html_safe %>
+<%= link_to l(:label_plusgantt_chart), {:controller => "plusgantt", :action => "show", :project_id => @project} %><br>
 <% end %>

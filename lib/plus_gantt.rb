@@ -1,12 +1,11 @@
-require 'plusgantt/helpers/plusgantt'
-
 module Plusgantt
 	HOURS_BY_DAY = 8.0
 	VALID_HOURS_BY_DAY = [4.0, 8.0, 12.0, 16.0]
 	CALCULATE_END_DATE = false
+	MONTHS = 6
 	
 	class << self
-	
+		
 		def calculate_end_date
 			if Setting.plugin_plus_gantt['calculate_end_date'].nil?
 				CALCULATE_END_DATE
@@ -29,6 +28,19 @@ module Plusgantt
 				end
 			else
 				HOURS_BY_DAY
+			end
+		end
+		
+		def months
+			if Setting.plugin_plus_gantt['months']
+				by_settigns = Setting.plugin_plus_gantt['months'].to_i
+				if by_settigns > 0 && by_settigns < 25				
+					by_settigns
+				else
+					MONTHS
+				end
+			else
+				MONTHS
 			end
 		end
 		

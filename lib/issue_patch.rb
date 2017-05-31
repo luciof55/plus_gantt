@@ -6,7 +6,8 @@ module IssuePatch
         base.send(:extend, ClassMethods)
         base.send(:include, InstanceMethods)
         base.class_eval do
-            alias_method :reschedule_on, :reschedule_on_with_patch
+            alias_method :reschedule_on_without_patch, :reschedule_on
+			alias_method :reschedule_on, :reschedule_on_with_patch
         end
     end
 
@@ -15,11 +16,11 @@ module IssuePatch
     end
 
     module InstanceMethods
-		include Plusgantt
+		include PlusganttUtilsHelper
 		
         def reschedule_on_with_patch(date)
-			Rails.logger.info("----------------reschedule_on_with_patch start----------------------------")
-			if Plusgantt.calculate_end_date
+			if Plusgantt.calculate_end_date && self.project.module_enabled?("plusgantt")
+				Rails.logger.info("----------------reschedule_on_with_patch start----------------------------")
 				Rails.logger.info("date: " + date.to_s)
 				if @utils.nil?
 					Rails.logger.info("----------------reschedule_on_with_patch initialize----------------------------")
@@ -31,16 +32,16 @@ module IssuePatch
 				if self.start_date && self.estimated_hours && self.leaf?
 					@utils.update_issue_end_date(self)
 				end
+				Rails.logger.info("----------------reschedule_on_with_patch end----------------------------")
 			else
-				self.reschedule_on(date)
+				self.reschedule_on_without_patch(date)
 			end
-			Rails.logger.info("----------------reschedule_on_with_patch end----------------------------")
         end
       end
 end
 
 Rails.configuration.to_prepare do
-    #unless Issue.included_modules.include? IssuePatch
+    unless Issue.included_modules.include? Plusgantt
         Issue.send(:include, IssuePatch)
-    #end
+    end
 end
