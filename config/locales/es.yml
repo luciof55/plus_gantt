@@ -19,3 +19,4 @@ es:
   label_months_amount: Cantidad de Meses
   label_help_months_amount: Cantidad de meses a graficar
   label_error_recalculate: Se ha producido un error mientras se recalculaba la fecha de finalización. Revisar los logs de Redmine para más detalle.
+  label_pgsubprojects: Sub Proyectos

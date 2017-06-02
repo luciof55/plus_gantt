@@ -169,5 +169,115 @@ module PlusganttUtilsHelper
 			end
 			Rails.logger.info("----------------cal_end_date end----------------------------")
 		end
+	
+		def calc_issue_expected_progress(issue, control_date)
+			if issue.start_date && control_date >= issue.start_date
+				if issue.due_before
+					if control_date >= issue.due_before
+						return 100.0
+					else
+						total_hours = 0.0
+						if issue.leaf?
+							return calc_task_expected_progress(issue, control_date)
+						else
+							issue.descendants.each do |child_issue|
+								Rails.logger.info("Issue Padre: " + issue.to_s + ". Issue hijo: " + child_issue.to_s)
+								if !child_issue.estimated_hours.nil? 
+									total_hours += (calc_task_expected_progress(child_issue, control_date) / 100.0) * child_issue.estimated_hours.to_d
+									Rails.logger.info("Acumulando las horas del hijo según avance: " + total_hours.to_s)	
+								end
+							end
+							
+							if issue.estimated_hours && issue.estimated_hours.to_d > 0
+								total_hours += (calc_task_expected_progress(issue, control_date) / 100.0) * issue.estimated_hours.to_d
+								Rails.logger.info("Acumulando las horas propias del issue según avance: " + total_hours.to_s)
+							end
+							
+							if issue.total_estimated_hours && issue.total_estimated_hours.to_d > 0
+								estimated_progress = ( (total_hours / issue.total_estimated_hours.to_d ) * 100.0).round(2)
+								if estimated_progress > 100.0
+									estimated_progress = 100.0
+								end
+							else
+								estimated_progress = 0.0
+							end
+							
+							return estimated_progress
+						end
+					end
+				else
+					return 0.0
+				end
+			else
+				return 0.0
+			end
+		end
+ 
+		def calc_task_expected_progress(issue, control_date)
+			if issue.start_date && control_date >= issue.start_date
+				if issue.due_before
+					if control_date >= issue.due_before
+						return 100.0
+					else
+						days = calc_days_between_date(issue.start_date, control_date)
+						hollidays = get_hollidays_between(issue.start_date, control_date)
+						Rails.logger.info("Hollydays: " + hollidays.to_s)
+						days -= hollidays.to_i
+						
+						hour_by_day = get_asignacion(issue)
+						total_hours = hour_by_day * days
+						
+						if issue.estimated_hours && issue.estimated_hours.to_i > 0
+							if total_hours > issue.estimated_hours.to_i
+								return 100.0
+							else
+								return ( ( total_hours / issue.estimated_hours.to_i ) * 100.0).round(2)
+							end
+						else
+							return 0.0
+						end
+					end
+				else
+					return 0.0
+				end
+			else
+				return 0.0
+			end
+		end
+	  
+		def calc_version_expected_progress(version, control_date, issues)
+			if version.start_date && control_date >= version.start_date
+				if version.due_date
+					if control_date >= version.due_date
+						return 100.0
+					else
+						total_hours = 0.0
+						total_estimated_hours = 0.0
+						issues.each do |issue|
+							if !issue.estimated_hours.nil? 
+								total_hours += (calc_task_expected_progress(issue, control_date) / 100.0) * issue.estimated_hours.to_d
+								total_estimated_hours += issue.estimated_hours.to_d
+							end
+						end
+						if total_estimated_hours.to_d > 0
+							estimated_progress = ( (total_hours / total_estimated_hours.to_d ) * 100.0).round(2)
+							if estimated_progress > 100.0
+								estimated_progress = 100.0
+							end
+						else
+							estimated_progress = 0.0
+						end
+						return estimated_progress
+					end
+				else
+					return 0.0
+				end
+			else
+				return 0.0
+			end
+		end
+	
+		def calc_project_expected_progess(project)
+		end
 	end
 end

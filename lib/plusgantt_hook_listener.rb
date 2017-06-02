@@ -2,6 +2,8 @@ class PlusganttHookListener < Redmine::Hook::ViewListener
 	include PlusganttUtilsHelper
 	
 	render_on :view_issues_sidebar_issues_bottom, :partial => "plusgantt/issues_sidebar" 
+	
+	render_on :view_projects_show_right, :partial => "plusgantt/project_show_right"
    
 	def controller_issues_new_after_save(context={})
 		update_issue_end_date(context, true)

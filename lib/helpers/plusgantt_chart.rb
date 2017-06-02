@@ -336,7 +336,7 @@ module PlusganttChartHelper
     def line_for_version(version, options, issues=nil)
         # Skip versions that don't have a start_date
         if version.is_a?(Version) && version.due_date && version.start_date
-			est_progress = calc_version_estimated_progress(version, self.control_date, issues)
+			est_progress = calc_version_expected_progress(version, self.control_date, issues)
 			@cached_label_progress ||= l(:label_progress)
 			@cached_label_expected ||= l(:label_expected_progress)
 			label = "#{@cached_label_progress}: #{version.completed_percent.to_f.round}%. #{@cached_label_expected}: #{est_progress}%"
@@ -351,7 +351,7 @@ module PlusganttChartHelper
     def line_for_issue(issue, options, issues=nil)
         # Skip issues that don't have a due_before (due_date or version's due_date)
         if issue.is_a?(Issue) && issue.start_date && issue.due_before
-			est_progress = calc_estimated_progress(issue, self.control_date)
+			est_progress = calc_issue_expected_progress(issue, self.control_date)
 			@cached_label_progress ||= l(:label_progress)
 			@cached_label_expected ||= l(:label_expected_progress)
 			label = "#{@cached_label_progress}: #{issue.done_ratio}%. #{@cached_label_expected}: #{est_progress}%"
@@ -384,11 +384,11 @@ module PlusganttChartHelper
         options[:g_width] ||= (self.date_to - self.date_from + 1) * options[:zoom]
 		
 		if object.is_a?(Issue)
-			expected_progress = calc_estimated_progress(object, self.control_date)
+			expected_progress = calc_issue_expected_progress(object, self.control_date)
 		end
 		
 		if object.is_a?(Version) && issues
-			expected_progress = calc_version_estimated_progress(object, self.control_date, issues)
+			expected_progress = calc_version_expected_progress(object, self.control_date, issues)
 		end
 		
         coords = coordinates(start_date, end_date, done_ratio, expected_progress, options[:zoom])
@@ -658,7 +658,11 @@ module PlusganttChartHelper
 			if issue.estimated_hours 
 				estimated_hours = "<strong>#{@cached_label_estimated_hours}</strong>: #{h(issue.estimated_hours)} h - ".html_safe
 			else
-				estimated_hours = "<strong>#{@cached_label_estimated_hours}</strong>: 0 h - ".html_safe
+				if issue.total_estimated_hours
+					estimated_hours = "<strong>#{@cached_label_total_estimated_hours}</strong>: #{h(issue.total_estimated_hours)} h - ".html_safe
+				else
+					estimated_hours = "<strong>#{@cached_label_estimated_hours}</strong>: 0 h - ".html_safe
+				end
 			end
 		end
 		
@@ -734,111 +738,12 @@ module PlusganttChartHelper
 		start_date + (end_date - start_date + 1) * (progress / 100.0)
     end
 
-	def calc_estimated_progress(issue, control_date)
-		if issue.start_date && control_date >= issue.start_date
-			if issue.due_before
-				if control_date >= issue.due_before
-					return 100.0
-				else
-					total_hours = 0.0
-					if issue.leaf?
-						return calc_task_expected_progress(issue, control_date)
-					else
-						issue.descendants.each do |child_issue|
-							Rails.logger.info("Issue Padre: " + issue.to_s + ". Issue hijo: " + child_issue.to_s)
-							if !child_issue.estimated_hours.nil? 
-								total_hours += (calc_task_expected_progress(child_issue, control_date) / 100.0) * child_issue.estimated_hours.to_d
-								Rails.logger.info("Acumulando las horas del hijo según avance: " + total_hours.to_s)	
-							end
-						end
-						
-						if issue.estimated_hours && issue.estimated_hours.to_d > 0
-							total_hours += (calc_task_expected_progress(issue, control_date) / 100.0) * issue.estimated_hours.to_d
-							Rails.logger.info("Acumulando las horas propias del issue según avance: " + total_hours.to_s)
-						end
-						
-						if issue.total_estimated_hours && issue.total_estimated_hours.to_d > 0
-							estimated_progress = ( (total_hours / issue.total_estimated_hours.to_d ) * 100.0).round(2)
-							if estimated_progress > 100.0
-								estimated_progress = 100.0
-							end
-						else
-							estimated_progress = 0.0
-						end
-						
-						return estimated_progress
-					end
-				end
-			else
-				return 0.0
-			end
-		else
-			return 0.0
-		end
-	end
- 
-	def calc_task_expected_progress(issue, control_date)
-		if issue.start_date && control_date >= issue.start_date
-			if issue.due_before
-				if control_date >= issue.due_before
-					return 100.0
-				else
-					days = @utils.calc_days_between_date(issue.start_date, control_date)
-					hollidays = @utils.get_hollidays_between(issue.start_date, control_date)
-					Rails.logger.info("Hollydays: " + hollidays.to_s)
-					days -= hollidays.to_i
-					
-					hour_by_day = @utils.get_asignacion(issue)
-					total_hours = hour_by_day * days
-					
-					if issue.estimated_hours && issue.estimated_hours.to_i > 0
-						if total_hours > issue.estimated_hours.to_i
-							return 100.0
-						else
-							return ( ( total_hours / issue.estimated_hours.to_i ) * 100.0).round(2)
-						end
-					else
-						return 0.0
-					end
-				end
-			else
-				return 0.0
-			end
-		else
-			return 0.0
-		end
+	def calc_issue_expected_progress(issue, control_date)
+		return @utils.calc_issue_expected_progress(issue, control_date)
 	end
 	  
-	def calc_version_estimated_progress(version, control_date, issues)
-		if version.start_date && control_date >= version.start_date
-			if version.due_date
-				if control_date >= version.due_date
-					return 100.0
-				else
-					total_hours = 0.0
-					total_estimated_hours = 0.0
-					issues.each do |issue|
-						if !issue.estimated_hours.nil? 
-							total_hours += (calc_task_expected_progress(issue, control_date) / 100.0) * issue.estimated_hours.to_d
-							total_estimated_hours += issue.estimated_hours.to_d
-						end
-					end
-					if total_estimated_hours.to_d > 0
-						estimated_progress = ( (total_hours / total_estimated_hours.to_d ) * 100.0).round(2)
-						if estimated_progress > 100.0
-							estimated_progress = 100.0
-						end
-					else
-						estimated_progress = 0.0
-					end
-					return estimated_progress
-				end
-			else
-				return 0.0
-			end
-		else
-			return 0.0
-		end
+	def calc_version_expected_progress(version, control_date, issues)
+		return @utils.calc_version_expected_progress(version, control_date, issues)
 	end
 	  
     def self.sort_issues!(issues)
@@ -924,7 +829,7 @@ module PlusganttChartHelper
 			when Version
 				version = object
 				tag_options[:id] = "version-#{object.id}"
-				tag_options[:class] = "project-" + version.project.id + " pgversion-name"
+				tag_options[:class] = "project-" + version.project.id.to_s + " pgversion-name"
 			when Project
 				tag_options[:class] = "pgproject-name"
         end

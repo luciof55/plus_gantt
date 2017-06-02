@@ -10,24 +10,24 @@ class PlusganttDashboardController < ApplicationController
   include QueriesHelper
   helper :sort
   include SortHelper
-  include PlusganttIssuesHelper
+  include PlusganttDashboardHelper
 
   def show
-	@issuesdate = IssueDate.new()
 	Rails.logger.info("----------------show----------------------------")
+	@dashboard = Dashboard.new()
+	@dashboard.project = @project
   end
   
   def calculate
-	@issuesdate = IssueDate.new()
-	retrieve_query
-    @query.group_by = nil
-    @issuesdate.query = @query if @query.valid?
 	Rails.logger.info("----------------calculate----------------------------")
-	issues_updated = @issuesdate.recalculate_issue_end_date(@project)
+	@dashboard = Dashboard.new()
+	@dashboard.project = @project
+	
+	issues_updated = @dashboard.recalculate_issue_end_date
 	if issues_updated >= 0
-		flash[:notice] = "Issues: " + issues_updated.to_s
+		flash[:notice] = l(:label_issue_plural) + ": " + issues_updated.to_s
 	else
-		flash[:error] = @issuesdate.error
+		flash[:error] = @dashboard.error
 	end
 	redirect_to :action => 'show'
   end
