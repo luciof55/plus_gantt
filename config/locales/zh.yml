@@ -19,4 +19,5 @@ zh:
   label_months_amount: Months
   label_help_months_amount: Amount of Months to render
   label_error_recalculate: An error has occurred while recalculate issues end date. Please check Redmine logs for details
+  label_pgsubprojects: Sub Projects
   

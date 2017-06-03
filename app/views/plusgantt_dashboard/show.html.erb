@@ -1,9 +1,11 @@
+<% @dashboard.view = self %>
 <h2><%= l(:label_plusgantt) %></h2>
 
 <p><%= l(:label_help_recalculate_issue_end_date) %></p>
 
 <% if !Plusgantt.calculate_end_date %>
-	<%= link_to l(:label_calculate_issue_desactivated), '/settings/plugin/plus_gantt', :class => 'pglink' %><br>
+	<%= link_to l(:label_calculate_issue_desactivated), '/settings/plugin/plus_gantt', :class => 'pglink' %>
+	<%= link_to 'Settings', '/settings/plugin/plus_gantt', :class => 'pglink' %><br>
 <% end %>
 
 <% if Plusgantt.calculate_end_date %>
@@ -11,17 +13,22 @@
 		<table>
 			<tbody>
 				<tr>
-					<th><%= link_to l(:label_plusgantt_chart), {:controller => "plusgantt", :action => "show", :project_id => @project} %></th>
-					<th><%= link_to 'Settings', '/settings/plugin/plus_gantt', :class => 'pglink' %></th>
+					<td style="colspan: 2"><h3><%= @project.name %></h3></td>
 				</tr>
 				<tr>
-					<th><h3><%= @project.name %></h3></th>
-					<th>
-						<%= link_to_function l(:button_recalculate), '$("#recalculate_form").submit()', :class => 'icon icon-checked' %>
-					</th>
+					<td><%= @dashboard.render_project_detail %></td>
+					<td><%= link_to_function l(:button_recalculate), '$("#recalculate_form").submit()', :class => 'icon icon-checked' %>
+					| <%= link_to l(:label_plusgantt_chart), {:controller => "plusgantt", :action => "show", :project_id => @project} %>
+					</td>
 				</tr>
 			</tbody>
 		</table>
+		<% if @dashboard.has_subprojects %>
+			<div class="projects box">
+				<h3><%= l(:label_pgsubprojects) %></h3>
+				<%= @dashboard.render_subprojects.html_safe %>
+			</div>
+		<% end %>
 	<% end #form%>
 <% end %>
 
