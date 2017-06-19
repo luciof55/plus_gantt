@@ -40,11 +40,12 @@ If you do not want the plugin calculate the start date and due date you can unck
 
 ## Installation notes
 
-**Attention** This plugin extends core function
+**Attention** This plugin extends core functions
 
 * Download zip and go to Redmine plugins folder and unzip the plugin 
 * Or go to Redmine plugins folder and run “git clone github.com/luciof55/ganttplus.git” 
 * Then enable the plugin “Administration->Plugins” for projects
+* Also you must set roles permissions, go to Administration -> Roles -> Permissions report, look for Plusgantt and check the roles you want.
 
 ## Develop Environment
 * Redmine version                3.3.3.stable
