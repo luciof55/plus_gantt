@@ -6,6 +6,7 @@ module PlusganttDashboardHelper
 		include Redmine::I18n
 		include ERB::Util
 	
+		attr_reader  :control_date, :width_line, :therehold
 		attr_accessor :error
 		attr_accessor :utils
 		attr_accessor :project
@@ -19,6 +20,107 @@ module PlusganttDashboardHelper
 				Rails.logger.info("----------------Dashboard initialize----------------------------")
 				@utils = Utils.new()
 			end
+			if options[:control_date]
+				@control_date = options[:control_date].to_date
+			else
+				@control_date = User.current.today
+			end
+			@threshold = 10
+			@width_line = 340
+		end
+		
+		def get_progress_text
+			return get_progress_value.round(2).to_s + "%"
+		end
+		
+		def get_expected_progress_text
+			return get_expected_progress_value.round(2).to_s + "%"
+		end
+		
+		def get_total_hours_text
+			return get_estimated_hours_value.round(2).to_s + " hs"
+		end
+		
+		def get_partial_budget_text
+			return (get_progress_value * get_estimated_hours_value / 100).round(2).to_s + " hs"
+		end
+		
+		def get_consumed_text
+			return get_consumed_value.round(2).to_s + " hs"
+		end
+		
+		def get_partial_budget_width
+			return (get_progress_value * @width_line / 100).round(2)
+		end
+		
+		def get_consumed_width
+			return (get_consumed_value / get_estimated_hours_value * @width_line).round(2)
+		end
+		
+		def get_consumed_class
+			consumed = get_consumed_value
+			partial_budget = get_progress_value * get_estimated_hours_value / 100
+			if consumed <= partial_budget
+				return "consumed_ok"
+			else
+				if ((consumed / partial_budget * 100).round(2) - 100) > @threshold
+					return "consumed_red"
+				else
+					return "consumed_wargning"
+				end
+			end
+		end
+		
+		def get_color_line
+			progress = get_progress_value
+			exp_progress = get_expected_progress_value
+			if exp_progress <= progress
+				return "#77933c"
+			else
+				if (exp_progress - progress).round(2) > @threshold
+					return "#c0504d"
+				else
+					return "#cccc00"
+				end
+			end
+		end
+		
+		def get_progress_value
+			if @total_progress
+				return @total_progress
+			else
+				issues = project_issues(@project)
+				data = get_project_progress(issues)
+				@total_progress = data[:total_progress]
+				@estimated_hours = data[:estimated_hours]
+				return @total_progress
+			end
+		end
+		
+		def get_expected_progress_value
+			@expected_progress = @utils.calc_project_expected_progess(@project, @control_date)
+			return @expected_progress
+		end
+		
+		def get_estimated_hours_value
+			if @estimated_hours
+				return @estimated_hours
+			else
+				issues = project_issues(@project)
+				data = get_project_progress(issues)
+				@total_progress = data[:total_progress]
+				@estimated_hours = data[:estimated_hours]
+				return @estimated_hours
+			end
+		end
+		
+		def get_consumed_value
+			if @consumed_value
+				return @consumed_value
+			else
+				@consumed_value = @utils.get_project_total_spent_hours(@project)
+			end
+			return @consumed_value
 		end
 		
 		def render_subprojects
@@ -42,9 +144,9 @@ module PlusganttDashboardHelper
 		def render_project_detail
 			Rails.logger.info("----------------render_project_expected_progress----------------------------")
 			content = "".html_safe
-			if project.module_enabled?("plusgantt")
+			if @project.module_enabled?("plusgantt")
 				begin
-					issues = project_issues(project)
+					issues = project_issues(@project)
 					label = view.content_tag(:span, get_project_detail(issues).html_safe).html_safe
 					content << view.content_tag(:div, label, :class => "label").html_safe
 				rescue => exception
@@ -58,10 +160,10 @@ module PlusganttDashboardHelper
 		
 		def recalculate_issue_end_date
 			Rails.logger.info("----------------plus_gantt_recalculate_issue_end_date----------------------------")
-			if project.module_enabled?("plusgantt")
+			if @project.module_enabled?("plusgantt")
 				if Plusgantt.calculate_end_date
 					Rails.logger.info("calculate_end_date is TRUE")
-					issues = project_issues(project)
+					issues = project_issues(@project)
 					relations = load_relations(issues)
 					begin
 						issues_updated = calcualte_end_date(issues, relations)
@@ -86,29 +188,39 @@ module PlusganttDashboardHelper
 		end
 		
 		private
-		
-		# Return expected progress
-		def get_project_detail(issues)
-			datail = "".html_safe
-			progress = "0".html_safe
-			estimated_hours = "0".html_safe
-			
+		# Return progress & estimated hours
+		def get_project_progress(issues)
 			total_hours = 0.0
 			total_done_ratio_hours = 0.0
+			result = {}
 			
 			issues.each do |issue|
-				if !issue.parent_id && issue.total_estimated_hours
-					total_done_ratio_hours += (issue.done_ratio * issue.total_estimated_hours)
-					total_hours += issue.total_estimated_hours
+				if issue.leaf? && issue.estimated_hours
+					total_done_ratio_hours += (issue.done_ratio * issue.estimated_hours)
+					total_hours += issue.estimated_hours
 				end
 			end
 			
 			if total_hours > 0
-				progress = (total_done_ratio_hours / total_hours).round(2).to_s
-				estimated_hours = total_hours.to_s
+				progress = (total_done_ratio_hours / total_hours).round(2)
+				estimated_hours = total_hours.round(0)
+				result = {:total_progress => progress, :estimated_hours  => estimated_hours}
+			else
+				result = {:total_progress => 0.0, :estimated_hours  => 0.0}
 			end
 			
-			datail = l(:field_total_estimated_hours) + ": " + estimated_hours + " h. " + l(:label_progress) + ": " + progress + "%."
+			return result
+		end
+		
+		# Return expected progress
+		def get_project_detail(issues)
+			datail = "".html_safe
+			
+			data = get_project_progress(issues)
+			@total_progress = data[:total_progress]
+			@estimated_hours = data[:estimated_hours]
+			
+			datail = l(:field_total_estimated_hours) + ": " + data[:estimated_hours].to_s + " h. " + l(:label_progress) + ": " + data[:total_progress].to_s + "%."
 			
 			return datail.html_safe
 		end
@@ -117,7 +229,7 @@ module PlusganttDashboardHelper
 		def projects
 			return @projects if @projects
 			
-			@projects = Project.visible.where("parent_id = ?", project.id).order("#{Project.table_name}.name ASC").to_a
+			@projects = Project.visible.where("parent_id = ?", @project.id).order("#{Project.table_name}.name ASC").to_a
 			
 			if @projects && @projects.count > 0
 				@projects.each do |subproject|
@@ -214,7 +326,11 @@ module PlusganttDashboardHelper
 		
 		# Returns the issues that belong to +project+
 		def project_issues(project)
-			Issue.visible.where("project_id = ?", project.id).to_a || []
+			Rails.logger.info("----------------init get project_issues-----------------------------")
+			Rails.logger.info("project_id: " + project.id.to_s)
+			result = Issue.visible.where("project_id = ?", project.id).to_a || []
+			Rails.logger.info("----------------end get project_issues-----------------------------")
+			return result
 		end
 		
 		def self.sort_issues!(issues)

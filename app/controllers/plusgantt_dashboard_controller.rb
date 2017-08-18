@@ -14,22 +14,23 @@ class PlusganttDashboardController < ApplicationController
 
   def show
 	Rails.logger.info("----------------show----------------------------")
-	@dashboard = Dashboard.new()
+	@dashboard = Dashboard.new(params)
 	@dashboard.project = @project
   end
   
   def calculate
 	Rails.logger.info("----------------calculate----------------------------")
-	@dashboard = Dashboard.new()
+	@dashboard = Dashboard.new(params)
 	@dashboard.project = @project
-	
-	issues_updated = @dashboard.recalculate_issue_end_date
-	if issues_updated >= 0
-		flash[:notice] = l(:label_issue_plural) + ": " + issues_updated.to_s
-	else
-		flash[:error] = @dashboard.error
+	if params[:user_action] && params[:user_action] == 'calculate'
+		issues_updated = @dashboard.recalculate_issue_end_date
+		if issues_updated >= 0
+			flash[:notice] = l(:label_issue_plural) + ": " + issues_updated.to_s
+		else
+			flash[:error] = @dashboard.error
+		end
 	end
-	redirect_to :action => 'show'
+	render action: 'show'
   end
 
 end

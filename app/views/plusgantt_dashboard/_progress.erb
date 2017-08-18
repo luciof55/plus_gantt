@@ -1,0 +1,65 @@
+				<tr>
+					<td>
+						<%
+							content = ""
+							style = ""
+						%>
+						<%= content_tag(:div, content.html_safe, :style => style, :class => 'plusgantt_progress_container') do %>
+							<%
+								content = ""
+								style = ""
+							%>
+							<%= content_tag(:div, content.html_safe, :style => style, :id => 'progress_draw_area', :class => 'plusgantt_progress') %>
+							<%
+								content = l(:label_expected_progress)
+								content += " " + @dashboard.get_expected_progress_text
+							%>
+							<%= content_tag(:div, content.html_safe, :style => style, :class => 'plusgantt_exp_progress') %>
+						<% end %>
+					</td>
+					<td>
+						<%
+							content = ""
+							style = ""
+						%>
+						<%= content_tag(:div, content.html_safe, :style => style, :class => 'plusgantt_hours_container') do %>
+							<%
+								content = "Horas"
+								style = ""
+							%>
+							<%= content_tag(:div, content.html_safe, :style => style, :class => 'plusgantt_hours_right') %>
+							<%
+								content = @dashboard.get_total_hours_text
+								style = ""
+							%>
+							<%= content_tag(:div, content.html_safe, :style => style, :class => 'plusgantt_hour_line total_budget') %>
+							<%
+								content = ""
+								style = ""
+							%>
+							<%= content_tag(:div, content.html_safe, :style => style, :class => 'plusgantt_spacer') %>
+							<%
+								content = @dashboard.get_partial_budget_text
+								style = "width: #{@dashboard.get_partial_budget_width}px;"
+							%>
+							<%= content_tag(:div, content.html_safe, :style => style, :class => 'plusgantt_hour_line partial_budget') %>
+							<%
+								content = ""
+								style = ""
+							%>
+							<%= content_tag(:div, content.html_safe, :style => style, :class => 'plusgantt_spacer') %>
+							<%
+								content = @dashboard.get_consumed_text
+								style = "width: #{@dashboard.get_consumed_width}px;"
+								clss = "plusgantt_hour_line " + @dashboard.get_consumed_class
+							%>
+							<%= content_tag(:div, content.html_safe, :style => style, :class => clss) %>
+						<% end %>
+					</td>
+				</tr>
+				<tr>
+					<td colspan = 2>
+						<%= l(:label_control_date) %> <%= date_field_tag 'control_date', @dashboard.control_date %>
+						<%= link_to_function l(:button_apply), '$("#user_action").val("report");$("#recalculate_form").submit()', :class => 'icon icon-checked' %>
+					</td>
+				</tr>

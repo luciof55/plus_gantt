@@ -10,6 +10,7 @@
 
 <% if Plusgantt.calculate_end_date %>
 	<%= form_tag({:controller => 'plusgantt_dashboard', :action => 'calculate', :project_id => @project}, :method => :post, :id => 'recalculate_form') do %>
+		<%= hidden_field_tag 'user_action', 'calculate' %>
 		<table>
 			<tbody>
 				<tr>
@@ -23,13 +24,13 @@
 				</tr>
 			</tbody>
 		</table>
-		<% if @dashboard.has_subprojects %>
-			<div class="projects box">
-				<h3><%= l(:label_pgsubprojects) %></h3>
-				<%= @dashboard.render_subprojects.html_safe %>
-			</div>
-		<% end %>
-	<% end #form%>
+	<% end %>
+	<% if @dashboard.has_subprojects %>
+		<div class="projects box">
+			<h3><%= l(:label_pgsubprojects) %></h3>
+			<%= @dashboard.render_subprojects.html_safe %>
+		</div>
+	<% end %>
 <% end %>
 
 <% content_for :sidebar do %>
@@ -37,5 +38,14 @@
 <% end %>
 
 <% content_for :header_tags do %>
+  <%= javascript_include_tag 'raphael' %>
+  <%= javascript_include_tag :plusgantt_dashboard, :plugin => 'plus_gantt' %>
   <%= stylesheet_link_tag "plus_gantt.css", :plugin => "plus_gantt" %>
+<% end %>
+
+<%= javascript_tag do %>
+  var progress_text = '<%= @dashboard.get_progress_text %>';
+  var progress_value = '<%= @dashboard.get_progress_value %>';
+  var color_line = '<%= @dashboard.get_color_line %>'
+  $(document).ready(drawProgressHandler(progress_text, progress_value, color_line));
 <% end %>
