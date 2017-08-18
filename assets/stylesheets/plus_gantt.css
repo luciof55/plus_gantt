@@ -18,15 +18,22 @@
 .plusgantt_spacer { height: 10px;}
 
 /***** Gantt chart *****/
+.plusgantt_subject_area {overflow: hidden; border: 1px solid #c0c0c0;}
 .plusgantt_area {position: absolute;left: 0px;}
 
 .plusgantt_hdr {
   position:absolute; top:0; height:16px; overflow: hidden;
   border-top: 1px solid #c0c0c0; border-bottom: 1px solid #c0c0c0; border-right: 1px solid #c0c0c0;
   text-align: center;
+  background: #eee;
 }
 
 .plusgantt_hdr.nwday {background-color:#f1f1f1; color:#999;}
+
+.plusgantt_hdr_col {position:absolute; top:0; height:16px; overflow: hidden;
+  border-top: 1px solid #c0c0c0; border-bottom: 1px solid #c0c0c0; border-right: 1px solid #c0c0c0;
+  text-align: center;font-size:0.7em;
+ }
 
 .plusgantt_subjects { font-size: 0.8em; }
 .plusgantt_subjects div {line-height:16px;height: 18px;overflow:hidden;white-space:nowrap;text-overflow: ellipsis;}
@@ -43,7 +50,7 @@
 
 .pgtask {
   position: absolute; top: 4px; height:8px; padding:0; margin:0;
-  font-size:0.8em; olor:#888;
+  font-size:0.8em; color:#888;
   line-height:16px; white-space:nowrap;
 }
 
