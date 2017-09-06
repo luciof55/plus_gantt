@@ -9,7 +9,7 @@
 <% end %>
 
 <% if Plusgantt.calculate_end_date %>
-	<%= form_tag({:controller => 'plusgantt_dashboard', :action => 'calculate', :project_id => @project}, :method => :post, :id => 'recalculate_form') do %>
+	<%= form_tag(plusgantt_dashboard_init_run_path(:project_id => @project), :id => 'recalculate_form') do %>
 		<%= hidden_field_tag 'user_action', 'calculate' %>
 		<table>
 			<tbody>

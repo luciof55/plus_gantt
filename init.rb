@@ -20,7 +20,7 @@ Redmine::Plugin.register :plus_gantt do
   
   project_module :plusgantt do
     permission :view_plusgantt, {:plusgantt => [:show]}
-	permission :plusgantt_dashboard, {:plusgantt_dashboard => [:show, :calculate]}
+	permission :plusgantt_dashboard, {:plusgantt_dashboard => [:show, :show_calculate, :init_run, :run]}
   end
   
   settings :default => {'empty' => true}, :partial => 'settings/plusgantt/general'

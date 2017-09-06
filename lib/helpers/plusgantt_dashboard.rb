@@ -158,22 +158,57 @@ module PlusganttDashboardHelper
 			return content
 		end
 		
-		def recalculate_issue_end_date
+		def recalculate_issue_end_date(issue, relations, predecessors)
 			Rails.logger.info("----------------plus_gantt_recalculate_issue_end_date----------------------------")
+			begin 
+				calcualte_end_date(issue, relations, predecessors)
+				@error = ""
+				return {:processed => 0, :predecessors => predecessors}
+			rescue => exception
+				Rails.logger.info("Error: " + "#{exception.class}: #{exception.exception}")
+				@error = l(:label_error_recalculate)
+				return {:processed => -1, :predecessors => nil}
+			end
+			Rails.logger.info("----------------plus_gantt_recalculate_issue_end_date----------------------------")
+		end
+		
+		def recalculate_predecessors_end_date(predecessors)
+			Rails.logger.info("----------------recalculate_predecessors_end_date----------------------------")
+			begin
+				predecessors.each do |key, value|
+					end_date = nil
+					value.each do |rel_issue|
+						if end_date.nil?
+							end_date = rel_issue.due_before
+						else
+							if rel_issue.due_before > end_date
+								end_date = rel_issue.due_before
+							end
+						end
+					end
+					
+					if !end_date.nil?
+						key.start_date = (end_date + 1).to_date
+						Rails.logger.info("Procesing follow or blocked: " + key.id.to_s + ' end_date: ' + key.start_date.to_s)
+						#Calcualte end date
+						issued_update+= 1
+						update_issue_dates(key, true)
+					end
+				end
+				return 0
+			rescue => exception
+				Rails.logger.info("Error: " + "#{exception.class}: #{exception.exception}")
+				@error = l(:label_error_recalculate)
+				return -1
+			end
+			Rails.logger.info("----------------recalculate_predecessors_end_date----------------------------")
+		end
+		
+		def validate_conf
+			Rails.logger.info("----------------validate_conf----------------------------")
 			if @project.module_enabled?("plusgantt")
 				if Plusgantt.calculate_end_date
-					Rails.logger.info("calculate_end_date is TRUE")
-					issues = project_issues(@project)
-					relations = load_relations(issues)
-					begin
-						issues_updated = calcualte_end_date(issues, relations)
-						@error = ""
-						return issues_updated
-					rescue => exception
-						Rails.logger.info("Error: " + "#{exception.class}: #{exception.exception}")
-						@error = l(:label_error_recalculate)
-						return -1
-					end
+					return 0
 				else
 					Rails.logger.info("calculate_end_date is FALSE")
 					@error = l(:label_calculate_issue_desactivated)
@@ -184,7 +219,31 @@ module PlusganttDashboardHelper
 				@error = l(:label_module_not_enabled)
 				return -3
 			end
-			Rails.logger.info("----------------plus_gantt_recalculate_issue_end_date----------------------------")
+			Rails.logger.info("----------------validate_conf----------------------------")
+		end
+		
+		# Returns the issues that belong to +project+
+		def project_issues(project)
+			Rails.logger.info("----------------init get project_issues-----------------------------")
+			Rails.logger.info("project_id: " + project.id.to_s)
+			issues = Issue.visible.where("project_id = ?", project.id).to_a || []
+			self.class.sort_issues!(issues)
+			return issues
+			Rails.logger.info("----------------end get project_issues-----------------------------")
+		end
+		
+		# Returns a hash of the relations between the issues that are present on the project
+		# and that should be processed, grouped by issue ids.
+		def load_relations(issues)
+			Rails.logger.info("----------------relations-----------------------------")
+			if issues.count > 0
+			  issue_ids = issues.map(&:id)
+			  relations = IssueRelation.where(:issue_from_id => issue_ids, :issue_to_id => issue_ids, :relation_type => RELATIONS_TYPES).
+				group_by(&:issue_to_id)
+			else
+			  relations = {}
+			end
+			return relations
 		end
 		
 		private
@@ -243,46 +302,16 @@ module PlusganttDashboardHelper
         
 		end
 		
-		def calcualte_end_date(issues, relations)
-			self.class.sort_issues!(issues)
-			predecessors = Hash.new []
-			issued_update = 0
-			issues.each do |issue|
-				if issue.leaf?
-					Rails.logger.info("Leaf " + issue.id.to_s)
-					rels = issue_relations(issue, relations)
-					if rels.count > 0
-						predecessors.store(issue, rels)
-					else
-						#Calcualte end date
-						issued_update+= 1
-						update_issue_dates(issue, true)
-					end
+		def calcualte_end_date(issue, relations, predecessors)
+			if issue.leaf?
+				Rails.logger.info("Leaf " + issue.id.to_s)
+				rels = issue_relations(issue, relations)
+				if rels.count > 0
+					predecessors.store(issue, rels)
+				else
+					update_issue_dates(issue, true)
 				end
 			end
-			
-			predecessors.each do |key, value|
-				end_date = nil
-				value.each do |rel_issue|
-					if end_date.nil?
-						end_date = rel_issue.due_before
-					else
-						if rel_issue.due_before > end_date
-							end_date = rel_issue.due_before
-						end
-					end
-				end
-				
-				if !end_date.nil?
-					key.start_date = (end_date + 1).to_date
-					Rails.logger.info("Procesing follow or blocked: " + key.id.to_s + ' end_date: ' + key.start_date.to_s)
-					#Calcualte end date
-					issued_update+= 1
-					update_issue_dates(key, true)
-				end
-			end
-			
-			return issued_update
 		end
 		
 		def update_issue_dates(issue, save)
@@ -308,29 +337,6 @@ module PlusganttDashboardHelper
 				end
 			end
 			return rels
-		end
-		
-		# Returns a hash of the relations between the issues that are present on the project
-		# and that should be processed, grouped by issue ids.
-		def load_relations(issues)
-			Rails.logger.info("----------------relations-----------------------------")
-			if issues.count > 0
-			  issue_ids = issues.map(&:id)
-			  relations = IssueRelation.where(:issue_from_id => issue_ids, :issue_to_id => issue_ids, :relation_type => RELATIONS_TYPES).
-				group_by(&:issue_to_id)
-			else
-			  relations = {}
-			end
-			return relations
-		end
-		
-		# Returns the issues that belong to +project+
-		def project_issues(project)
-			Rails.logger.info("----------------init get project_issues-----------------------------")
-			Rails.logger.info("project_id: " + project.id.to_s)
-			result = Issue.visible.where("project_id = ?", project.id).to_a || []
-			Rails.logger.info("----------------end get project_issues-----------------------------")
-			return result
 		end
 		
 		def self.sort_issues!(issues)
