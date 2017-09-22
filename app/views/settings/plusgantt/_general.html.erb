@@ -96,6 +96,13 @@
       </td>
     </tr>
 	<tr>
+      <th><%= l(:label_validate_parent_task) %></th>
+      <td>
+	    <%= check_box_tag 'settings[validate_parent_task]', '1', Plusgantt.validate_parent_task %>
+		<%= l(:label_validate_parent_task_help) %>
+      </td>
+    </tr>
+	<tr>
       <th><%= l(:label_hollidays) %></th>
       <td>
 		<%= date_field_tag 'holliday', User.current.today %>

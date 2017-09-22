@@ -20,4 +20,8 @@ zh:
   label_help_months_amount: 统计呈现的月数
   label_error_recalculate: 重新计算问题结束日期时发生错误，请检查Redmine日志或联系管理员处理！
   label_pgsubprojects: 子项目
+  label_create_report: Create Report
+  label_show_report: Show Reports
+  label_validate_parent_task: Validate Parent Task
+  label_validate_parent_task_help: if checked, when an issue is created or update parente task will be required
   

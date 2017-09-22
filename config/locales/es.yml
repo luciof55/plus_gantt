@@ -20,3 +20,7 @@ es:
   label_help_months_amount: Cantidad de meses a graficar
   label_error_recalculate: Se ha producido un error mientras se recalculaba la fecha de finalización. Revisar los logs de Redmine para más detalle.
   label_pgsubprojects: Sub Proyectos
+  label_create_report: Crear Reporte
+  label_show_report: Mostrar Reportes
+  label_validate_parent_task: Validar Parent Task
+  label_validate_parent_task_help: Validar si el atributo Parent Task es requerido

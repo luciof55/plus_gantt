@@ -20,26 +20,28 @@ module IssuePatch
 		include PlusganttUtilsHelper
 		
 		def project_parent_issue_present
-			issues_count = project.issues.count
-			Rails.logger.info("project_parent_issue_present - count: " + issues_count.to_s)
-			#Creating an issue
-			if (issues_count > 0) && id.nil?
-				Rails.logger.info("Creating an issue")
-				return true
-			end
-			
-			#Editing an issue
-			if !id.nil?
-				Rails.logger.info("Editing an issue")
-				if @utils.nil?
-					@utils = Utils.new()
-				end
-				parent_issue = @utils.get_issue_project_parent(project)
-				if parent_issue.nil?
+			if Plusgantt.validate_parent_task
+				issues_count = project.issues.count
+				Rails.logger.info("project_parent_issue_present - count: " + issues_count.to_s)
+				#Creating an issue
+				if (issues_count > 0) && id.nil?
+					Rails.logger.info("Creating an issue")
 					return true
-				else
-					if id != parent_issue.id
+				end
+				
+				#Editing an issue
+				if !id.nil?
+					Rails.logger.info("Editing an issue")
+					if @utils.nil?
+						@utils = Utils.new()
+					end
+					parent_issue = @utils.get_issue_project_parent(project)
+					if parent_issue.nil?
 						return true
+					else
+						if id != parent_issue.id
+							return true
+						end
 					end
 				end
 			end

@@ -20,4 +20,8 @@ en:
   label_help_months_amount: Amount of Months to render
   label_error_recalculate: An error has occurred while recalculate issues end date. Please check Redmine logs for details.
   label_pgsubprojects: Sub Projects
+  label_create_report: Create Report
+  label_show_report: Show Reports
+  label_validate_parent_task: Validate Parent Task
+  label_validate_parent_task_help: if checked, when an issue is created or update parente task will be required
   

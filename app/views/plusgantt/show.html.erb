@@ -8,10 +8,7 @@
 
 <h2><%= l(:label_gantt) %></h2>
 
-<%= form_tag({:controller => 'plusgantt', :action => 'show',
-             :project_id => @project, :month => params[:month],
-             :year => params[:year], :months => params[:months]},
-             :method => :get, :id => 'query_form') do %>
+<%= form_tag(project_plusgantt_path(:project_id => @project), :id => 'query_form') do %>
 <%= hidden_field_tag 'set_filter', '1' %>
 <%= hidden_field_tag 'plusgantt', '1' %>
 

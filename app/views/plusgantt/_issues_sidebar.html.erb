@@ -3,5 +3,5 @@
 <%= '&nbsp;&nbsp;'.html_safe %>
 <%= link_to l(:label_pg_dashboard), {:controller => "plusgantt_dashboard", :action => "show", :project_id => @project} %><br>
 <%= '&nbsp;&nbsp;'.html_safe %>
-<%= link_to l(:label_plusgantt_chart), {:controller => "plusgantt", :action => "show", :project_id => @project} %><br>
+<%= link_to l(:label_plusgantt_chart), project_plusgantt_path(:project_id => @project) %><br>
 <% end %>
