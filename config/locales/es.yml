@@ -24,3 +24,9 @@ es:
   label_show_report: Mostrar Reportes
   label_validate_parent_task: Validar Parent Task
   label_validate_parent_task_help: Validar si el atributo Parent Task es requerido
+  label_date_from_period_on: Fecha de inicio del pérido abierto
+  label_date_from_period_on_help: La fecha de las entradas de tiempo deben ser porsteriores a la fecha de inicio del período abierto
+  label_date_to_period_on: Fecha de finalización del pérido abierto
+  label_date_to_period_on_help: La fecha de las entradas de tiempo deben ser anteriores a la fecha de finalización del período abierto
+  hour_time_entry_error: "Con la carga actual sobrepasa la carga máxima de horas normales del período. Total cargado: %{user_month_hour}. Valor máximo: %{total_month_hour}"
+  open_periodo_entry_error: La fecha de carga pertence a un período cerrado

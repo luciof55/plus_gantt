@@ -24,4 +24,10 @@ en:
   label_show_report: Show Reports
   label_validate_parent_task: Validate Parent Task
   label_validate_parent_task_help: if checked, when an issue is created or update parente task will be required
+  label_date_from_period_on: Start date Open period
+  label_date_from_period_on_help: Time entries date must be after start date open period
+  label_date_to_period_on: End date Open period
+  label_date_to_period_on_help: Time entries date must be before end date open period
+  hour_time_entry_error: "With the current load it exceeds the maximum load of normal hours of the period. Total loaded: %{user_month_hour}. Maximum value: %{total_month_hour}"
+  open_periodo_entry_error: The date of loading belongs to a closed period
   

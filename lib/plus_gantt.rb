@@ -5,6 +5,22 @@ module Plusgantt
 	
 	class << self
 	
+		def date_from_period_on
+			if Setting.plugin_plus_gantt['date_from_period_on'].nil?
+				User.current.today
+			else
+				Setting.plugin_plus_gantt['date_from_period_on'].to_date
+			end
+		end
+		
+		def date_to_period_on
+			if Setting.plugin_plus_gantt['date_to_period_on'].nil?
+				User.current.today
+			else
+				Setting.plugin_plus_gantt['date_to_period_on'].to_date
+			end
+		end
+	
 		def validate_parent_task
 			if Setting.plugin_plus_gantt['validate_parent_task'].nil?
 				false

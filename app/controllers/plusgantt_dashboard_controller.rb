@@ -71,9 +71,9 @@ class PlusganttDashboardController < ApplicationController
   
   def init_run
     session[:finished] = false
+	@dashboard = Dashboard.new(params)
+	@dashboard.project = @project
 	if params[:user_action] && params[:user_action] == 'calculate'
-		@dashboard = Dashboard.new(params)
-		@dashboard.project = @project
 		if @dashboard.validate_conf == 0
 			@issues = @dashboard.project_issues(@project)
 			@relations = @dashboard.load_relations(@issues)
@@ -85,7 +85,7 @@ class PlusganttDashboardController < ApplicationController
 			redirect_to plusgantt_dashboard_show_calculate_path(:project_id => @project)
 		end
 	else
-		redirect_to plusgantt_dashboard_show_calculate_path(:project_id => @project)
+		render :action => 'show'
 	end
   end
   

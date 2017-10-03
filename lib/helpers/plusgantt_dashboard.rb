@@ -85,41 +85,53 @@ module PlusganttDashboardHelper
 			end
 		end
 		
-		def get_progress_value
-			if @total_progress
-				return @total_progress
-			else
-				issues = project_issues(@project)
-				data = get_project_progress(issues)
-				@total_progress = data[:total_progress]
-				@estimated_hours = data[:estimated_hours]
-				return @total_progress
+		def get_progress_value(project=nil)
+			if project.nil?
+				if @total_progress
+					return @total_progress
+				end
+				project = @project
 			end
+			issues = project_issues(project)
+			data = get_project_progress(issues)
+			@total_progress = data[:total_progress]
+			@estimated_hours = data[:estimated_hours]
+			return @total_progress
 		end
 		
-		def get_expected_progress_value
-			@expected_progress = @utils.calc_project_expected_progess(@project, @control_date)
+		def get_expected_progress_value(control_date=nil,project=nil)
+			if control_date.nil?
+				control_date = @control_date
+			end
+			if project.nil?
+				project = @project
+			end
+			@expected_progress = @utils.calc_project_expected_progess(project, control_date)
 			return @expected_progress
 		end
 		
-		def get_estimated_hours_value
-			if @estimated_hours
-				return @estimated_hours
-			else
-				issues = project_issues(@project)
-				data = get_project_progress(issues)
-				@total_progress = data[:total_progress]
-				@estimated_hours = data[:estimated_hours]
-				return @estimated_hours
+		def get_estimated_hours_value(project=nil)
+			if project.nil?
+				if @estimated_hours
+					return @estimated_hours
+				end
+				project = @project
 			end
+			issues = project_issues(project)
+			data = get_project_progress(issues)
+			@total_progress = data[:total_progress]
+			@estimated_hours = data[:estimated_hours]
+			return @estimated_hours
 		end
 		
-		def get_consumed_value
-			if @consumed_value
-				return @consumed_value
-			else
-				@consumed_value = @utils.get_project_total_spent_hours(@project)
+		def get_consumed_value(project=nil)
+			if project.nil?
+				if @consumed_value
+					return @consumed_value
+				end
+				project = @project
 			end
+			@consumed_value = @utils.get_project_total_spent_hours(project)
 			return @consumed_value
 		end
 		
@@ -173,7 +185,7 @@ module PlusganttDashboardHelper
 		end
 		
 		def recalculate_predecessors_end_date(predecessors)
-			Rails.logger.info("----------------recalculate_predecessors_end_date----------------------------")
+			Rails.logger.info("----------------recalculate_predecessors_end_date start----------------------------")
 			begin
 				predecessors.each do |key, value|
 					end_date = nil
@@ -191,8 +203,12 @@ module PlusganttDashboardHelper
 						key.start_date = (end_date + 1).to_date
 						Rails.logger.info("Procesing follow or blocked: " + key.id.to_s + ' end_date: ' + key.start_date.to_s)
 						#Calcualte end date
-						issued_update+= 1
-						update_issue_dates(key, true)
+						begin
+							update_issue_dates(key, true)
+						rescue ActiveRecord::StaleObjectError
+							key.reload
+							Rails.logger.info("Already updated: " + key.id.to_s + ' end_date: ' + key.start_date.to_s)
+						end
 					end
 				end
 				return 0
@@ -201,7 +217,7 @@ module PlusganttDashboardHelper
 				@error = l(:label_error_recalculate)
 				return -1
 			end
-			Rails.logger.info("----------------recalculate_predecessors_end_date----------------------------")
+			Rails.logger.info("----------------recalculate_predecessors_end_date end----------------------------")
 		end
 		
 		def validate_conf
@@ -228,8 +244,8 @@ module PlusganttDashboardHelper
 			Rails.logger.info("project_id: " + project.id.to_s)
 			issues = Issue.visible.where("project_id = ?", project.id).to_a || []
 			self.class.sort_issues!(issues)
-			return issues
 			Rails.logger.info("----------------end get project_issues-----------------------------")
+			return issues
 		end
 		
 		# Returns a hash of the relations between the issues that are present on the project
@@ -244,6 +260,47 @@ module PlusganttDashboardHelper
 			  relations = {}
 			end
 			return relations
+		end
+		
+		# Return all the project nodes that will be displayed
+		def projects
+			return @projects if @projects
+			@projects = Project.visible.where("parent_id = ?", @project.id).order("#{Project.table_name}.name ASC").to_a
+			if @projects && @projects.count > 0
+				@projects.each do |subproject|
+					if !subproject.module_enabled?("plusgantt")
+						@projects.delete(subproject)
+					end
+				end
+			end
+			return @projects
+		end
+		
+		def create_reports_items(period)
+			result = []
+			projects = Project.visible.order("#{Project.table_name}.name ASC").to_a
+			projects.each do |project|
+				report_item = PgReport.new
+				report_item.project = project
+				report_item.control_date = period
+				report_item.budget = get_estimated_hours_value(project)
+				report_item.end_date = project.due_date
+				report_item.progress = get_progress_value(project)
+				report_item.expected_progress = get_expected_progress_value(period, project)
+				report_item.partial_budget = (report_item.progress * report_item.budget / 100).round(2)
+				report_item.hours_consumed = get_consumed_value(project)
+				report_item.hours_adjusted = report_item.hours_consumed
+				report_item.progress_status = (report_item.progress - report_item.expected_progress).round(2)
+				report_item.hours_status = (report_item.partial_budget - report_item.hours_adjusted).round(2)
+				if report_item.partial_budget > 0
+					report_item.hours_percent_diff = ((report_item.partial_budget - report_item.hours_adjusted) / report_item.partial_budget).round(2)
+				else
+					report_item.hours_percent_diff = 0
+				end
+				report_item.status = 0
+				result.push(report_item)
+			end
+			return result
 		end
 		
 		private
@@ -284,24 +341,6 @@ module PlusganttDashboardHelper
 			return datail.html_safe
 		end
 		
-		# Return all the project nodes that will be displayed
-		def projects
-			return @projects if @projects
-			
-			@projects = Project.visible.where("parent_id = ?", @project.id).order("#{Project.table_name}.name ASC").to_a
-			
-			if @projects && @projects.count > 0
-				@projects.each do |subproject|
-					if !subproject.module_enabled?("plusgantt")
-						@projects.delete(subproject)
-					end
-				end
-			end
-			
-			return @projects
-        
-		end
-		
 		def calcualte_end_date(issue, relations, predecessors)
 			if issue.leaf?
 				Rails.logger.info("Leaf " + issue.id.to_s)
@@ -321,7 +360,8 @@ module PlusganttDashboardHelper
 					if issue.save
 						Rails.logger.info("Issue updated: " + issue.id.to_s)
 					else
-						raise ActiveRecord::Rollback
+						Rails.logger.info("Issue error updated: " + issue.id.to_s)
+						##raise ActiveRecord::Rollback
 					end
 				end
 			else

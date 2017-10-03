@@ -103,6 +103,20 @@
       </td>
     </tr>
 	<tr>
+      <th><%= l(:label_date_from_period_on) %></th>
+      <td>
+	    <%= date_field_tag 'settings[date_from_period_on]', Plusgantt.date_from_period_on %>
+		<%= l(:label_date_from_period_on_help) %>
+      </td>
+    </tr>
+	<tr>
+      <th><%= l(:label_date_to_period_on) %></th>
+      <td>
+	    <%= date_field_tag 'settings[date_to_period_on]', Plusgantt.date_to_period_on %>
+		<%= l(:label_date_to_period_on_help) %>
+      </td>
+    </tr>
+	<tr>
       <th><%= l(:label_hollidays) %></th>
       <td>
 		<%= date_field_tag 'holliday', User.current.today %>
