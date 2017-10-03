@@ -19,8 +19,11 @@
 				<tr>
 					<td><%= @dashboard.render_project_detail %></td>
 					<td><%= link_to_function l(:button_recalculate), '$("#recalculate_form").submit()', :class => 'icon icon-checked' %>
-					| <%= link_to l(:label_plusgantt_chart), {:controller => "plusgantt", :action => "show", :project_id => @project} %>
+					| <%= link_to l(:label_plusgantt_chart), project_plusgantt_path(:project_id => @project) %>
 					</td>
+				</tr>
+				<tr>
+					<td><%= render :partial => 'progress' %></td>
 				</tr>
 			</tbody>
 		</table>

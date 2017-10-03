@@ -1,0 +1,34 @@
+<% @dashboard.view = self %>
+<div class="contextual">
+    <%= render_action_links %>
+</div>
+<h2><%= l(:label_plusgantt) %></h2>
+<%= form_tag(plusgantt_report_show_path(), :id => 'report_form') do %>
+	<fieldset id="filters" class="collapsible collapsed">
+	  <legend onclick="toggleFieldset(this);"><%=l(:label_filter_plural)%></legend>
+	  <div>
+		<%= render :partial => 'filters' %>
+	  </div>
+	</fieldset>
+<% end %>
+<div class="autoscroll">
+	<table class="list">
+		<thead><tr>
+			<th>Project</th>
+			<th>Presupuesto</th>
+			<th>Fecha Fin</th>
+			<th>Avance</th>
+			<th>Avance Esperado</th>	 
+		</tr></thead>
+		<tbody>
+		</tbody>
+	</table>
+</div>
+
+<% content_for :sidebar do %>
+  <%= render :partial => 'issues/sidebar' %>
+<% end %>
+
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag "plus_gantt.css", :plugin => "plus_gantt" %>
+<% end %>

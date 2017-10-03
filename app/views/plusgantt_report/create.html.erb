@@ -1,0 +1,60 @@
+<% @dashboard.view = self %>
+<div class="contextual">
+    <%= render_action_links %>
+</div>
+<h2><%= l(:label_plusgantt) %></h2>
+<%= form_tag(plusgantt_report_create_path(), :id => 'create_form') do %>
+	<div class="timespan">
+		<p class="buttons">
+		<%= l(:label_control_date) %> <%= select_month(@month_from, :prefix => "month", :discard_type => true) %>
+		<%= select_year(@year_from, :prefix => "year", :discard_type => true) %>
+		<%= link_to_function l(:button_apply), 'jQuery("#create_form").submit()', :class => 'apply icon icon-checked' %>
+	</div>
+<% end %>
+<%= form_tag(plusgantt_report_save_path(), :id => 'create_form') do %>
+	<p class="buttons">
+	Periodo: <%= @period %>
+	<%= submit_tag l(:button_add) %>
+	<div class="autoscroll">
+		<table class="list">
+			<thead><tr>
+				<th>Project</th>
+				<th>Presupuesto</th>
+				<th>Finaliza</th>
+				<th>Avance</th>
+				<th>Avance Esperado</th>
+				<th>Horas Previstas</th>
+				<th>Consumidas</th>
+				<th>Ajustadas</th>
+				<th>Status Avance</th>
+				<th>Status Horas</th>
+				<th>% Horas</th>
+				<th>Status General</th>
+			</tr></thead>
+			<tbody>
+				<% @list.each do |item| %>
+					<tr>
+						<td><%= item.project.name %></td>
+						<td><%= item.budget %></td>
+						<td><%= item.end_date %></td>
+						<td><%= item.progress %></td>
+						<td><%= item.expected_progress %></td>
+						<td><%= item.partial_budget %></td>
+						<td><%= item.hours_consumed %></td>
+						<td><%= item.hours_adjusted %></td>
+						<td><%= item.progress_status %></td>
+						<td><%= item.hours_status %></td>
+						<td><%= item.partial_budget %></td>
+						<td><%= item.status %></td>
+					</tr>
+				<%end%>
+			</tbody>
+		</table>
+	</div>
+<% end %>
+<% content_for :sidebar do %>
+  <%= render :partial => 'issues/sidebar' %>
+<% end %>
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag "plus_gantt.css", :plugin => "plus_gantt" %>
+<% end %>

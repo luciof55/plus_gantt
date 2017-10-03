@@ -1,0 +1,6 @@
+	<div class="timespan">
+		<p class="buttons">
+		<%= l(:label_control_date) %> <%= select_month(@month_from, :prefix => "month", :discard_type => true) %>
+		<%= select_year(@year_from, :prefix => "year", :discard_type => true) %>
+		<%= link_to_function l(:button_apply), 'jQuery("#report_form").submit()', :class => 'apply icon icon-checked' %>
+	</div>
