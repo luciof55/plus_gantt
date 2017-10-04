@@ -28,6 +28,7 @@ module TimelogPatch
     end
 
     module InstanceMethods
+		include PlusganttUtilsHelper
 		
 		def validate_timelog
 			Rails.logger.info("------------------------validate_timelog inicio ------------------------")
@@ -61,7 +62,7 @@ module TimelogPatch
 			last_day  = (first_day >> 1) - 1
 			new_time_entry_hours = time_entry.hours.to_i
 			Rails.logger.info("------------------------validate_timelog es normal: " + new_time_entry_hours.to_s)
-			place = getPlace(time_entry.user)
+			place = get_place(time_entry.user)
 			national_hollidays = []
 			if place && time_entry.project.module_enabled?("redmine_workload")
 				national_hollidays = WlNationalHoliday.where("? <= start_holliday AND start_holliday <= ? AND place = ?", first_day, last_day, place).order(start_holliday: :asc)
@@ -124,17 +125,12 @@ module TimelogPatch
 			return extra
 		end
 	
-		def getPlace(user)
-			place = nil
-			if user && user.custom_value_for(CustomField.find_by_name_and_type('Sede', 'UserCustomField')) &&
-				user.custom_value_for(CustomField.find_by_name_and_type('Sede', 'UserCustomField')).value
-				index = user.custom_value_for(CustomField.find_by_name_and_type('Sede', 'UserCustomField')).value.to_s.index('-')
-				if !index.nil? && index > 0 && user.custom_value_for(CustomField.find_by_name_and_type('Sede', 'UserCustomField')).value.to_s[0, index].to_i > 0
-					place = user.custom_value_for(CustomField.find_by_name_and_type('Sede', 'UserCustomField')).value.to_s[0, index].to_i
-					Rails.logger.info("------------------------validate_timelog Sede: " + place.to_s)
-				end
+		def get_place(user)
+			if @utils.nil?
+				Rails.logger.info("----------------reschedule_on_with_patch initialize----------------------------")
+				@utils = Utils.new()
 			end
-			return place
+			return @utils.get_place(user)
 		end
 	
 		def getWorkingHour(user)
