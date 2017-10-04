@@ -4,13 +4,15 @@ module PlusganttUtilsHelper
 		def initialize()
 		end
 		
-		def get_hollidays_between(earlier_date, later_date, project)
+		def get_hollidays_between(earlier_date, later_date, project, place)
 			hollidays = 0
 			#Rails.logger.info("get_hollidays_between: " + Plusgantt.get_hollidays.to_s)
 			if project.module_enabled?("redmine_workload")
 				#Rails.logger.info("----------------get_hollidays_between: Using redmine_workload----------------------------")
-				national_hollidays = WlNationalHoliday.where("? <= start_holliday AND start_holliday <= ?", earlier_date, later_date) 
-				hollidays = national_hollidays.count{|v| (![0,6].include?(v.start_holliday.to_date.wday))}
+				if place
+					national_hollidays = WlNationalHoliday.where("? <= start_holliday AND start_holliday <= ? AND place = ?", earlier_date, later_date, place)
+					hollidays = national_hollidays.count{|v| (![0,6].include?(v.start_holliday.to_date.wday))}
+				end
 			else
 				if Plusgantt.get_hollidays
 					hollidays = Plusgantt.get_hollidays.count{|d| (earlier_date <= d.to_date && d.to_date <= later_date && ![0,6].include?(d.to_date.wday))}
@@ -140,7 +142,7 @@ module PlusganttUtilsHelper
 				Rails.logger.info("----------------update_issue_end_date----------------------------")
 				Rails.logger.info("days: " + days.to_s)
 				Rails.logger.info("----------------update_issue_end_date----------------------------")
-				issue.due_date = cal_end_date(issue.start_date, issue.due_date, issue.project)
+				issue.due_date = cal_end_date(issue.start_date, issue.due_date, issue)
 			end
 			
 			update_issue_vacations_end_date(issue)
@@ -158,7 +160,7 @@ module PlusganttUtilsHelper
 				end
 			end
 			
-			hollidays = get_hollidays_between(start_date, start_date, project)
+			hollidays = get_hollidays_between(start_date, start_date, project, get_place(issue.assigned_to))
 			if hollidays.to_i > 0
 				issue.start_date = (start_date + hollidays).to_date
 				cal_start_date(issue)
@@ -168,46 +170,47 @@ module PlusganttUtilsHelper
 			end
 		end
 	   
-		def cal_end_date(start_date, end_date, project)
+		def cal_end_date(start_date, end_date, issue)
+			project = issue.project
 			Rails.logger.info("----------------cal_end_date start----------------------------")
 			Rails.logger.info("start_date: " + start_date.to_s)
 			Rails.logger.info("end_date: " + end_date.to_s)
 			weekenddays = calc_weekenddays_between_date(start_date, end_date)
 			if weekenddays == 0
 				Rails.logger.info("1 - weekenddays: " + weekenddays.to_s)
-				hollidays = get_hollidays_between(start_date, end_date, project)
+				hollidays = get_hollidays_between(start_date, end_date, project, get_place(issue.assigned_to))
 				#Rails.logger.info("Hollydays: " + hollidays.to_s)
 				if hollidays.to_i > 0
 					start_date = (end_date + 1).to_date
 					end_date = (end_date + hollidays.to_i).to_date
 					weekenddays = calc_weekenddays_between_date(start_date, end_date)
 					if weekenddays == 0
-						hollidays = get_hollidays_between(end_date, end_date, project)
+						hollidays = get_hollidays_between(end_date, end_date, project, get_place(issue.assigned_to))
 						#Rails.logger.info("Hollydays: " + hollidays.to_s)
 						if hollidays.to_i > 0
 							end_date = (end_date + hollidays.to_i).to_date
-							return cal_end_date(end_date, end_date, project)
+							return cal_end_date(end_date, end_date, issue)
 						else
 							return end_date.to_date
 						end
 					else
 						if end_date.wday == 6
 							Rails.logger.info("DIA SABADO")
-							return cal_end_date((end_date + 2).to_date, (end_date + 2 + (weekenddays - 1)).to_date, project)
+							return cal_end_date((end_date + 2).to_date, (end_date + 2 + (weekenddays - 1)).to_date, issue)
 						else
 							if end_date.wday == 0
 								Rails.logger.info("DIA DOMINGO")
-								return cal_end_date((end_date + 1).to_date, (end_date + 1 + (weekenddays - 1)).to_date, project)
+								return cal_end_date((end_date + 1).to_date, (end_date + 1 + (weekenddays - 1)).to_date, issue)
 							else
 								Rails.logger.info("DIA:" + end_date.wday.to_s)
-								return cal_end_date(end_date, (end_date + weekenddays).to_date, project)
+								return cal_end_date(end_date, (end_date + weekenddays).to_date, issue)
 							end
 						end
 					end
 				end;
 				return end_date.to_date
 			else
-				hollidays = get_hollidays_between(start_date, end_date, project)
+				hollidays = get_hollidays_between(start_date, end_date, project, get_place(issue.assigned_to))
 				#Rails.logger.info("Hollydays: " + hollidays.to_s)
 				if hollidays.to_i > 0
 					weekenddays += calc_weekenddays_between_date( (end_date + 1).to_date, (end_date + hollidays.to_i).to_date)
@@ -215,14 +218,14 @@ module PlusganttUtilsHelper
 				end
 				if end_date.wday == 6
 					Rails.logger.info("DIA SABADO")
-					return cal_end_date((end_date + 2).to_date, (end_date + 2 + (weekenddays - 1)).to_date, project)
+					return cal_end_date((end_date + 2).to_date, (end_date + 2 + (weekenddays - 1)).to_date, issue)
 				else
 					if end_date.wday == 0
 						Rails.logger.info("DIA DOMINGO")
-						return cal_end_date((end_date + 1).to_date, (end_date + 1 + (weekenddays - 1)).to_date, project)
+						return cal_end_date((end_date + 1).to_date, (end_date + 1 + (weekenddays - 1)).to_date, issue)
 					else
 						Rails.logger.info("DIA:" + end_date.wday.to_s)
-						return cal_end_date(end_date, (end_date + weekenddays).to_date, project)
+						return cal_end_date(end_date, (end_date + weekenddays).to_date, issue)
 					end
 				end
 			end
@@ -284,7 +287,7 @@ module PlusganttUtilsHelper
 								days = DateTools::getRealDistanceInDays(timeSpan, issue.assigned_to.id)
 							else
 								days = calc_days_between_date(issue.start_date, control_date)
-								hollidays = get_hollidays_between(issue.start_date, control_date, issue.project)
+								hollidays = get_hollidays_between(issue.start_date, control_date, issue.project, issue.assigned_to)
 								#Rails.logger.info("Hollydays: " + hollidays.to_s)
 								days -= hollidays.to_i
 							end
@@ -380,6 +383,19 @@ module PlusganttUtilsHelper
 			else
 				return
 			end
+		end
+		
+		def get_place(user)
+			place = nil
+			if user && user.custom_value_for(CustomField.find_by_name_and_type('Sede', 'UserCustomField')) &&
+				user.custom_value_for(CustomField.find_by_name_and_type('Sede', 'UserCustomField')).value
+				index = user.custom_value_for(CustomField.find_by_name_and_type('Sede', 'UserCustomField')).value.to_s.index('-')
+				if !index.nil? && index > 0 && user.custom_value_for(CustomField.find_by_name_and_type('Sede', 'UserCustomField')).value.to_s[0, index].to_i > 0
+					place = user.custom_value_for(CustomField.find_by_name_and_type('Sede', 'UserCustomField')).value.to_s[0, index].to_i
+					Rails.logger.info("------------------------Utils Sede: " + place.to_s)
+				end
+			end
+			return place
 		end
 	end
 end

@@ -57,7 +57,7 @@ module IssuePatch
 					Rails.logger.info("----------------reschedule_on_with_patch initialize----------------------------")
 					@utils = Utils.new()
 				end
-				@utils.get_hollidays_between(date, date, project)
+				@utils.get_hollidays_between(date, date, project, @utils.get_place(self.assigned_to))
 				Rails.logger.info("issue: " + self.to_s)
 				self.start_date = date
 				if self.start_date && self.estimated_hours && self.leaf?
