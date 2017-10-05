@@ -284,7 +284,7 @@ module PlusganttUtilsHelper
 						if issue.estimated_hours && issue.estimated_hours.to_i > 0
 							if issue.assigned_to && issue.project.module_enabled?("redmine_workload")
 								timeSpan = issue.start_date..control_date
-								days = DateTools::getRealDistanceInDays(timeSpan, issue.assigned_to.id)
+								days = DateTools::getRealDistanceInDays(timeSpan, issue.assigned_to)
 							else
 								days = calc_days_between_date(issue.start_date, control_date)
 								hollidays = get_hollidays_between(issue.start_date, control_date, issue.project, issue.assigned_to)
