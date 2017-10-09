@@ -8,4 +8,5 @@ RedmineApp::Application.routes.draw do
 	match '/projects/issues/plusgantt_dashboard/show_calculate/(:id)', :to => 'plusgantt_dashboard#show_calculate', via: [:get, :post], :as => 'plusgantt_dashboard_show_calculate'
 	match '/projects/issues/plusgantt_dashboard/init_run/(:id)', :to => 'plusgantt_dashboard#init_run', via: [:get, :post], :as => 'plusgantt_dashboard_init_run'
 	match '/projects/issues/plusgantt_dashboard/run/(:id)', :to => 'plusgantt_dashboard#run', via: [:get, :post], :as => 'plusgantt_dashboard_run'
+	resources :pg_tracker_config
 end

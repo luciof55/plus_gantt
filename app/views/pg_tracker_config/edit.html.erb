@@ -1,0 +1,13 @@
+<% html_title(l(:tracker_config_title)) %>
+
+<h2><%= l(:tracker_config_edit) %></h2>
+
+<%= form_for @pg_tracker_config do |f| %>
+	<%= render(partial: "form", locals: {form: f, disabled: true}) %>
+	<div style = "float: none" class="splitcontentleft">
+		<p>
+			<%= f.submit l(:button_update)%>
+			<%= link_to l(:button_cancel), :controller => 'pg_tracker_config', :action => "index" %>
+		</p>
+	</div>
+<% end %>

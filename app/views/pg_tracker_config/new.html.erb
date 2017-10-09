@@ -1,0 +1,14 @@
+<% html_title(l(:tracker_config_title)) %>
+
+<h2><%= l(:tracker_config_new) %></h2>
+
+<%= form_for :pg_tracker_config, url: {action: "create"}, html: {class: "nifty_form"} do |f| %>
+	<%= render(partial: "form", locals: {form: f, disabled: false}) %>
+	<div style = "float: none" class="splitcontentleft">
+		<p>
+			<%= f.submit l(:button_add)%>
+			<%= link_to l(:button_cancel), :controller => 'pg_tracker_config', :action => "index" %>
+		</p>
+	</div>
+<% end %>
+  

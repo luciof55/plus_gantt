@@ -30,3 +30,9 @@ es:
   label_date_to_period_on_help: La fecha de las entradas de tiempo deben ser anteriores a la fecha de finalización del período abierto
   hour_time_entry_error: "Con la carga actual sobrepasa la carga máxima de horas normales del período. Total cargado: %{user_month_hour}. Valor máximo: %{total_month_hour}"
   open_periodo_entry_error: La fecha de carga pertence a un período cerrado
+  tracker_allow_time_log_error: El tracker/proyecto no permite la carga de horas
+  tracker_config_title: Configuración de Tracker
+  tracker_config_new: Nueva configuración
+  tracker_config_edit: Edición de configuración
+  label_tracker_config_allow: Permite carga
+  tracker_config_duplicated_error: Ya existe una configuración para los datos ingresados
