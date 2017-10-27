@@ -70,34 +70,36 @@ module TimelogPatch
 			last_day  = (first_day >> 1) - 1
 			new_time_entry_hours = time_entry.hours.to_i
 			Rails.logger.info("------------------------validate_timelog es normal: " + new_time_entry_hours.to_s)
-			place = get_place(time_entry.user)
-			national_hollidays = []
-			if place && time_entry.project.module_enabled?("redmine_workload")
-				national_hollidays = WlNationalHoliday.where("? <= start_holliday AND start_holliday <= ? AND place = ?", first_day, last_day, place).order(start_holliday: :asc)
-			end
-			
-			non_working_week_days = Setting['non_working_week_days']
-			Rails.logger.info("------------------------non_working_week_days: " + non_working_week_days.to_s)
-			workingHour = getWorkingHour(time_entry.user)
-			
-			timeSpan = first_day..last_day
-			total_days = 0
-			
-			timeSpan.each do |day|
-				cwday = day.cwday
-				if cwday == 0
-					#For Redmine Sunday is 7, no 0.
-					cwday = 7
+			total_month_hour = get_fix_hours(user)
+			if total_month_hour == 0
+				place = get_place(time_entry.user)
+				national_hollidays = []
+				if place && time_entry.project.module_enabled?("redmine_workload")
+					national_hollidays = WlNationalHoliday.where("? <= start_holliday AND start_holliday <= ? AND place = ?", first_day, last_day, place).order(start_holliday: :asc)
 				end
 				
-				#Rails.logger.info("------------------------day: " + day.to_s + " --- cwday: " + cwday.to_s)
-				if !non_working_week_days.include?(cwday.to_s) 
-					total_days += getHolliday(national_hollidays, day)
+				non_working_week_days = Setting['non_working_week_days']
+				Rails.logger.info("------------------------non_working_week_days: " + non_working_week_days.to_s)
+				workingHour = getWorkingHour(time_entry.user)
+				
+				timeSpan = first_day..last_day
+				total_days = 0
+				
+				timeSpan.each do |day|
+					cwday = day.cwday
+					if cwday == 0
+						#For Redmine Sunday is 7, no 0.
+						cwday = 7
+					end
+					
+					#Rails.logger.info("------------------------day: " + day.to_s + " --- cwday: " + cwday.to_s)
+					if !non_working_week_days.include?(cwday.to_s) 
+						total_days += getHolliday(national_hollidays, day)
+					end
 				end
+				
+				total_month_hour = total_days * workingHour
 			end
-			
-			total_month_hour = total_days * workingHour
-			
 			Rails.logger.info("------------------------total_month_hour: " + total_month_hour.to_s)
 			
 			time_entries = TimeEntry.where('user_id = ? AND ? <= spent_on AND spent_on <= ?', time_entry.user.id, first_day, last_day)
@@ -131,6 +133,16 @@ module TimelogPatch
 					extra = true
 			end
 			return extra
+		end
+		
+		def get_fix_hours(user)
+			fix_hours = 0
+			if user && user.custom_value_for(CustomField.find_by_name_and_type('HorasFijasMes', 'UserCustomField')) &&
+				user.custom_value_for(CustomField.find_by_name_and_type('HorasFijasMes', 'UserCustomField')).value && user.custom_value_for(CustomField.find_by_name_and_type('HorasFijasMes', 'UserCustomField')).value.to_i > 0
+				fix_hours = user.custom_value_for(CustomField.find_by_name_and_type('HorasFijasMes', 'UserCustomField')).value.to_i
+				Rails.logger.info("------------------------get_fix_hours: " + fix_hours.to_s)
+			end
+			return fix_hours
 		end
 	
 		def get_place(user)
