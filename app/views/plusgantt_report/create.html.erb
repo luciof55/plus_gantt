@@ -11,9 +11,11 @@
 		<%= link_to_function l(:button_apply), 'jQuery("#create_form").submit()', :class => 'apply icon icon-checked' %>
 	</div>
 <% end %>
-<%= form_tag(plusgantt_report_save_path(), :id => 'create_form') do %>
+<%= form_tag(plusgantt_report_save_path(), :id => 'save_form') do %>
 	<p class="buttons">
 	Periodo: <%= @period %>
+	<%= hidden_field_tag 'year', @year_from %>
+	<%= hidden_field_tag 'month', @month_from %>
 	<%= submit_tag l(:button_add) %>
 	<div class="autoscroll">
 		<table class="list">
@@ -23,12 +25,10 @@
 				<th>Finaliza</th>
 				<th>Avance</th>
 				<th>Avance Esperado</th>
+				<th>Status Avance</th>
 				<th>Horas Previstas</th>
 				<th>Consumidas</th>
 				<th>Ajustadas</th>
-				<th>Status Avance</th>
-				<th>Status Horas</th>
-				<th>% Horas</th>
 				<th>Status General</th>
 			</tr></thead>
 			<tbody>
@@ -39,13 +39,14 @@
 						<td><%= item.end_date %></td>
 						<td><%= item.progress %></td>
 						<td><%= item.expected_progress %></td>
-						<td><%= item.partial_budget %></td>
-						<td><%= item.hours_consumed %></td>
-						<td><%= item.hours_adjusted %></td>
 						<td><%= item.progress_status %></td>
-						<td><%= item.hours_status %></td>
 						<td><%= item.partial_budget %></td>
-						<td><%= item.status %></td>
+						<% select_id = 'hours_consumed_' + item.project.id.to_s %>
+						<td><%=  text_field_tag select_id,  item.hours_consumed %></td>
+						<% select_id = 'hours_adjusted_' + item.project.id.to_s %>
+						<td><%=  text_field_tag select_id,  item.hours_adjusted %></td>
+						<% select_id = 'status_' + item.project.id.to_s %>
+						<td><%= select_tag select_id, options_for_select(@status_options, item.status), {:include_blank => false}%></td>
 					</tr>
 				<%end%>
 			</tbody>

@@ -2,7 +2,7 @@ class PlusganttDashboardController < ApplicationController
   menu_item :plusgantt_dashboard
 
   before_filter :init_cache, :only => [:init_run, :run]
-  before_filter :find_optional_project
+  before_filter :find_optional_project, :validate_param_date
   before_filter :read_cache, :only => [:run]
   after_filter  :write_cache, :only => [:init_run, :run]
   
@@ -90,6 +90,16 @@ class PlusganttDashboardController < ApplicationController
   end
   
   private
+	def validate_param_date
+	   if params[:control_date]
+		   begin
+			   Date.parse(params[:control_date])
+			rescue ArgumentError
+			  flash[:error] = l(:label_date_format_error)
+			end
+		end
+	end
+	
   def init_cache
 	tmp_path = Rails.root.join('tmp')
 	unless File.writable? tmp_path.to_s

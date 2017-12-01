@@ -30,4 +30,17 @@ zh:
   label_date_to_period_on_help: Time entries date must be before end date open period"
   hour_time_entry_error: "With the current load it exceeds the maximum load of normal hours of the period. Total loaded: %{user_month_hour}. Maximum value: %{total_month_hour}"
   open_periodo_entry_error: The date of loading belongs to a closed period
+  tracker_allow_time_log_error: Tracker/Project does not allow time log
+  tracker_config_title: Tracker Configuration
+  tracker_config_new: New configuration
+  tracker_config_edit: Configuration edit
+  label_tracker_config_allow: Allow time log
+  tracker_config_duplicated_error: A configuration already exists with the same values
+  label_date_format_error: Not a valid date
+  status_green: Green
+  status_yellow: Yellow
+  status_red: Red
+  status_gray: Gray
+  label_progress_status_threshold: Progress desviation status thershold
+  label_progress_status_threshold_help: Thershold value used to calculate progress desviation semaphore. Desviation between 0 a thershold will generatea warning semaphore, a desviation above thershold will generate a red semaphore
   

@@ -13,4 +13,5 @@ RedmineApp::Application.routes.draw do
 	match '/plusgantt_report/save', :to => 'plusgantt_report#save', via: [:get, :post], :as => 'plusgantt_report_save'
 	match '/plusgantt_report/edit', :to => 'plusgantt_report#edit', via: [:get, :post], :as => 'plusgantt_report_edit'
 	match '/plusgantt_report/detail', :to => 'plusgantt_report#detail', via: [:get, :post], :as => 'plusgantt_report_detail'
+	resources :pg_tracker_config
 end

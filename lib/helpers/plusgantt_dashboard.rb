@@ -20,12 +20,7 @@ module PlusganttDashboardHelper
 				Rails.logger.info("----------------Dashboard initialize----------------------------")
 				@utils = Utils.new()
 			end
-			if options[:control_date]
-				@control_date = options[:control_date].to_date
-			else
-				@control_date = User.current.today
-			end
-			@threshold = 10
+			@control_date = param_date(options[:control_date])
 			@width_line = 340
 		end
 		
@@ -50,39 +45,19 @@ module PlusganttDashboardHelper
 		end
 		
 		def get_partial_budget_width
-			return (get_progress_value * @width_line / 100).round(2)
+			(get_progress_value * @width_line / 100).round(2)
 		end
 		
 		def get_consumed_width
-			return (get_consumed_value / get_estimated_hours_value * @width_line).round(2)
+			(get_consumed_value / get_estimated_hours_value * @width_line).round(2)
 		end
 		
 		def get_consumed_class
-			consumed = get_consumed_value
-			partial_budget = get_progress_value * get_estimated_hours_value / 100
-			if consumed <= partial_budget
-				return "consumed_ok"
-			else
-				if ((consumed / partial_budget * 100).round(2) - 100) > @threshold
-					return "consumed_red"
-				else
-					return "consumed_wargning"
-				end
-			end
+			PgReport.get_consumed_class(get_consumed_value, get_progress_value * get_estimated_hours_value / 100)
 		end
 		
 		def get_color_line
-			progress = get_progress_value
-			exp_progress = get_expected_progress_value
-			if exp_progress <= progress
-				return "#77933c"
-			else
-				if (exp_progress - progress).round(2) > @threshold
-					return "#c0504d"
-				else
-					return "#cccc00"
-				end
-			end
+			PgReport.get_color_line(get_progress_value, get_expected_progress_value)
 		end
 		
 		def get_progress_value(project=nil)
@@ -124,14 +99,15 @@ module PlusganttDashboardHelper
 			return @estimated_hours
 		end
 		
-		def get_consumed_value(project=nil)
+		def get_consumed_value(project=nil, first_day=nil, last_day=nil)
 			if project.nil?
 				if @consumed_value
 					return @consumed_value
 				end
 				project = @project
+				last_day = @control_date
 			end
-			@consumed_value = @utils.get_project_total_spent_hours(project)
+			@consumed_value = @utils.get_project_total_spent_hours(project, first_day, last_day)
 			return @consumed_value
 		end
 		
@@ -278,7 +254,7 @@ module PlusganttDashboardHelper
 		
 		def create_reports_items(period)
 			result = []
-			projects = Project.visible.order("#{Project.table_name}.name ASC").to_a
+			projects = Project.visible.where("#{Project.table_name}.status = ?", Project::STATUS_ACTIVE).order("#{Project.table_name}.name ASC").to_a
 			projects.each do |project|
 				report_item = PgReport.new
 				report_item.project = project
@@ -288,22 +264,43 @@ module PlusganttDashboardHelper
 				report_item.progress = get_progress_value(project)
 				report_item.expected_progress = get_expected_progress_value(period, project)
 				report_item.partial_budget = (report_item.progress * report_item.budget / 100).round(2)
-				report_item.hours_consumed = get_consumed_value(project)
+				report_item.hours_consumed = get_consumed_value(project, nil, period)
 				report_item.hours_adjusted = report_item.hours_consumed
 				report_item.progress_status = (report_item.progress - report_item.expected_progress).round(2)
-				report_item.hours_status = (report_item.partial_budget - report_item.hours_adjusted).round(2)
-				if report_item.partial_budget > 0
-					report_item.hours_percent_diff = ((report_item.partial_budget - report_item.hours_adjusted) / report_item.partial_budget).round(2)
-				else
-					report_item.hours_percent_diff = 0
-				end
 				report_item.status = 0
 				result.push(report_item)
 			end
 			return result
 		end
+
+		def delete_reports_items(period)
+			begin
+				Rails.logger.info("----------------------DELETING REPORTS ITEMS-------------------")
+				items = PgReport.select(:id).order(id: :desc).where("control_date = ?", period).to_a || []
+				if items.!empty?
+					PgReport.destroy(items)
+					Rails.logger.info("----------------------ALL REPORTS ITEMS WERE DELETED------------------")
+				end
+				return 0
+			rescue => exception
+				Rails.logger.info("---------------------EXCEPCION------------------------------")
+				return -1
+			end
+		end
 		
 		private
+		def param_date(date)
+		   if date
+			   begin
+				   return Date.parse(date)
+				rescue ArgumentError
+				   return User.current.today
+				end
+			else
+				return User.current.today
+			end
+		end
+		
 		# Return progress & estimated hours
 		def get_project_progress(issues)
 			total_hours = 0.0

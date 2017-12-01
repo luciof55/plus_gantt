@@ -13,7 +13,7 @@ Redmine::Plugin.register :plus_gantt do
   name 'Gantt Plus plugin'
   author 'Lucio Ferrero'
   description 'This is a plugin for Redmine wich render a project gantt adding a control date in order to visualize the expected ratio'
-  version '0.0.5'
+  version '0.0.7'
   url 'https://github.com/luciof55/plus_gantt'
   author_url 'https://www.linkedin.com/in/lucioferrero/'
   
@@ -26,6 +26,7 @@ Redmine::Plugin.register :plus_gantt do
 	permission :plusgantt_dashboard, {:plusgantt_dashboard => [:show, :show_calculate, :init_run, :run]}
 	permission :plusgantt_report, {:plusgantt_report => [:show, :detail]}
 	permission :plusgantt_report_manage, {:plusgantt_report => [:show, :create, :save, :edit, :detail]}
+	permission :config_tracker_timelog, {:pg_tracker_config => [:edit, :update, :create, :destroy, :new]}
   end
   
   settings :default => {'empty' => true}, :partial => 'settings/plusgantt/general'

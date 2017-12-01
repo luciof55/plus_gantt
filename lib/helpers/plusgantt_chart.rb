@@ -83,11 +83,7 @@ module PlusganttChartHelper
         else
           @max_rows = Setting.gantt_items_limit.blank? ? nil : Setting.gantt_items_limit.to_i
         end
-		if options[:control_date]
-			@control_date = options[:control_date].to_date
-		else
-			@control_date = User.current.today
-		end
+		@control_date = param_date(options[:control_date])
 		if options[:render_versions] && options[:render_versions] == '1'
 			@render_versions = true
 		else
@@ -674,6 +670,17 @@ module PlusganttChartHelper
 	  end
 	  
 	  private
+		def param_date(date)
+		   if date
+			   begin
+				   return Date.parse(date)
+				rescue ArgumentError
+				   return User.current.today
+				end
+			else
+				return User.current.today
+			end
+		end
 
       def coordinates(start_date, end_date, progress, expected_progress, zoom=nil)
         zoom ||= @zoom

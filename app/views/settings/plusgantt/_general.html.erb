@@ -110,12 +110,19 @@
       </td>
     </tr>
 	<tr>
-      <th><%= l(:label_date_to_period_on) %></th>
-      <td>
-	    <%= date_field_tag 'settings[date_to_period_on]', Plusgantt.date_to_period_on %>
-		<%= l(:label_date_to_period_on_help) %>
-      </td>
-    </tr>
+		 <th><%= l(:label_date_to_period_on) %></th>
+		 <td>
+			 <%= date_field_tag 'settings[date_to_period_on]', Plusgantt.date_to_period_on %>
+			 <%= l(:label_date_to_period_on_help) %>
+		 </td>
+	 </tr>
+	 <tr>
+		 <th><%= l(:label_progress_status_threshold) %></th>
+		 <td>
+			 <%= text_field_tag 'settings[progress_status_threshold]', Plusgantt.progress_status_threshold %>
+			 <%= l(:label_progress_status_threshold_help) %>
+		 </td>
+	 </tr>
 	<tr>
       <th><%= l(:label_hollidays) %></th>
       <td>

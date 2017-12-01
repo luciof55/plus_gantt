@@ -12,10 +12,17 @@
 .plusgantt_hour_line.total_budget { background-color: #808080}
 .plusgantt_hour_line.partial_budget { background-color: #376092 }
 .plusgantt_hour_line.consumed_ok { background-color: #77933c }
-.plusgantt_hour_line.consumed_wargning { background-color: #cccc00 }
+.plusgantt_hour_line.consumed_warning { background-color: #cccc00 }
 .plusgantt_hour_line.consumed_red { background-color: #c0504d }
 
 .plusgantt_spacer { height: 10px;}
+
+/****** Gantt Reports *****/
+.pg_project_status {-moz-border-radius: 20px; -webkit-border-radius: 20px; -khtml-border-radius: 20px; border-radius: 20px;}
+.pg_project_status.consumed_ok { background-color: #77933c }
+.pg_project_status.consumed_warning { background-color: #cccc00 }
+.pg_project_status.consumed_red { background-color: #c0504d }
+
 
 /***** Gantt chart *****/
 .plusgantt_subject_area {overflow: hidden; border: 1px solid #c0c0c0;}

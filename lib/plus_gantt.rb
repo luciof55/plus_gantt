@@ -2,9 +2,18 @@ module Plusgantt
 	HOURS_BY_DAY = 8.0
 	VALID_HOURS_BY_DAY = [4.0, 8.0, 12.0, 16.0]
 	MONTHS = 6
-	
+	STATUS_THERSHOLD = 10
+
 	class << self
-	
+
+		def progress_status_threshold
+			if Setting.plugin_plus_gantt['status_threshold'].nil?
+				STATUS_THERSHOLD
+			else
+				Setting.plugin_plus_gantt['status_threshold'].to_i
+			end
+		end
+
 		def date_from_period_on
 			if Setting.plugin_plus_gantt['date_from_period_on'].nil?
 				User.current.today

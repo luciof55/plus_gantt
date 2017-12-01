@@ -365,14 +365,41 @@ module PlusganttUtilsHelper
 			end
 		end
 		
-		def get_project_total_spent_hours(project)
-			issue = get_issue_project_parent(project)
-			if !issue.nil?
-				return issue.total_spent_hours.round(2)
-			else
-				#If theres is no parent issue, no expected progress is calculated
-				return 0.0
+		def getTimeEntryExtra(time_entry)
+			extra = false
+			if time_entry && time_entry.custom_value_for(CustomField.find_by_name_and_type('Extras', 'TimeEntryCustomField')) &&
+				time_entry.custom_value_for(CustomField.find_by_name_and_type('Extras', 'TimeEntryCustomField')).value && time_entry.custom_value_for(CustomField.find_by_name_and_type('Extras', 'TimeEntryCustomField')).value == '1'
+					extra = true
 			end
+			return extra
+		end
+		
+		def get_project_total_spent_hours(project, first_day, last_day)
+			total_hours = 0
+			time_entries = []
+			
+			if first_day && last_day
+				time_entries = TimeEntry.where('project_id = ? AND ? <= spent_on AND spent_on <= ?', project.id, first_day, last_day)
+			else
+				if first_day
+					time_entries = TimeEntry.where('project_id = ? AND ? <= spent_on', project.id, first_day)
+				else
+					if last_day
+						time_entries = TimeEntry.where('project_id = ? AND spent_on <= ?', project.id, last_day)
+					else
+						time_entries = TimeEntry.where('project_id = ?', project.id)
+					end
+				end
+			end
+			
+			time_entries.each do |time_entry_element|
+				if !getTimeEntryExtra(time_entry_element) 
+					total_hours += time_entry_element.hours
+				end
+			end
+			
+			return total_hours
+			
 		end
 		
 		def get_issue_project_parent(project)
