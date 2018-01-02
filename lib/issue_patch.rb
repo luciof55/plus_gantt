@@ -20,7 +20,21 @@ module IssuePatch
 		include PlusganttUtilsHelper
 		
 		def project_parent_issue_present
-			if Plusgantt.validate_parent_task
+			validate = false
+			
+			if project.custom_value_for(CustomField.find_by_name_and_type('ValidarIssuePadre', 'ProjectCustomField'))
+				if project.custom_value_for(CustomField.find_by_name_and_type('ValidarIssuePadre', 'ProjectCustomField')).value.to_i == 1
+					validateProject = true
+				else
+					validateProject = false
+				end
+			else
+				validateProject = true
+			end
+			
+			validate = Plusgantt.validate_parent_task && validateProject
+			
+			if validate
 				issues_count = project.issues.count
 				Rails.logger.info("project_parent_issue_present - count: " + issues_count.to_s)
 				#Creating an issue
