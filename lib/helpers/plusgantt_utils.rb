@@ -234,8 +234,8 @@ module PlusganttUtilsHelper
 	
 		def calc_issue_expected_progress(issue, control_date)
 			if issue.start_date && control_date >= issue.start_date
-				if issue.due_before
-					if control_date >= issue.due_before
+				if issue.due_date
+					if control_date >= issue.due_date
 						return 100.0
 					else
 						total_hours = 0.0
@@ -277,8 +277,8 @@ module PlusganttUtilsHelper
  
 		def calc_task_expected_progress(issue, control_date)
 			if issue.start_date && control_date >= issue.start_date
-				if issue.due_before
-					if control_date >= issue.due_before
+				if issue.due_date
+					if control_date >= issue.due_date
 						return 100.0
 					else
 						if issue.estimated_hours && issue.estimated_hours.to_i > 0

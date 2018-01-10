@@ -282,7 +282,7 @@ module PlusganttChartHelper
 		increment_row = false
 		case object
 			when Issue
-				increment_row = object.start_date && object.due_before
+				increment_row = object.start_date && object.due_date
 			when Version
 				increment_row = object.due_date && object.start_date
 			when Project
@@ -349,14 +349,14 @@ module PlusganttChartHelper
     end
 
     def line_for_issue(issue, options, issues=nil)
-        # Skip issues that don't have a due_before (due_date or version's due_date)
-        if issue.is_a?(Issue) && issue.start_date && issue.due_before
+        # Skip issues that don't have a due_date
+        if issue.is_a?(Issue) && issue.start_date && issue.due_date
 			est_progress = calc_issue_expected_progress(issue, self.control_date)
 			@cached_label_progress ||= l(:label_progress)
 			@cached_label_expected ||= l(:label_expected_progress)
 			label = "#{@cached_label_progress}: #{issue.done_ratio}%. #{@cached_label_expected}: #{est_progress}%"
 			markers = !issue.leaf?
-			line(issue.start_date, issue.due_before, issue.done_ratio, markers, label, options, issue, issues)
+			line(issue.start_date, issue.due_date, issue.done_ratio, markers, label, options, issue, issues)
         end
     end
 
@@ -364,7 +364,7 @@ module PlusganttChartHelper
 		if object
 			case object
 				when Issue
-					if object.start_date && object.due_before
+					if object.start_date && object.due_date
 						send "#{options[:format]}_subject", options, label, object
 					end
 				when Version

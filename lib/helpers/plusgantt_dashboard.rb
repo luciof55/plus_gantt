@@ -191,10 +191,10 @@ module PlusganttDashboardHelper
 					end_date = nil
 					value.each do |rel_issue|
 						if end_date.nil?
-							end_date = rel_issue.due_before
+							end_date = rel_issue.due_date
 						else
-							if rel_issue.due_before > end_date
-								end_date = rel_issue.due_before
+							if rel_issue.due_date > end_date
+								end_date = rel_issue.due_date
 							end
 						end
 					end
