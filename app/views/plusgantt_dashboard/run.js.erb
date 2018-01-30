@@ -1,0 +1,11 @@
+$('#import-progress').progressbar({value: <%= session[:current].to_i %>});
+$('#progress-label').text("<%= session[:current].to_i %> / <%= @issues.size.to_i %>");
+
+<% if session[:finished] %>
+	window.location.href='<%= plusgantt_dashboard_show_calculate_path(:project_id => @project) %>';
+<% else %>
+	$.ajax({
+	  url: '<%= plusgantt_dashboard_run_path(:project_id => @project, :format => 'js') %>',
+	  type: 'post'
+	});
+<% end %>

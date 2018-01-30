@@ -8,6 +8,7 @@ module IssuePatch
         base.class_eval do
             alias_method :reschedule_on_without_patch, :reschedule_on
 			alias_method :reschedule_on, :reschedule_on_with_patch
+			validates_presence_of :parent_issue_id, :if => :project_parent_issue_present
         end
     end
 
@@ -18,6 +19,50 @@ module IssuePatch
     module InstanceMethods
 		include PlusganttUtilsHelper
 		
+		def project_parent_issue_present
+			validate = false
+			
+			if project.custom_value_for(CustomField.find_by_name_and_type('ValidarIssuePadre', 'ProjectCustomField'))
+				if project.custom_value_for(CustomField.find_by_name_and_type('ValidarIssuePadre', 'ProjectCustomField')).value.to_i == 1
+					validateProject = true
+				else
+					validateProject = false
+				end
+			else
+				validateProject = true
+			end
+			
+			validate = Plusgantt.validate_parent_task && validateProject
+			
+			if validate
+				issues_count = project.issues.count
+				Rails.logger.info("project_parent_issue_present - count: " + issues_count.to_s)
+				#Creating an issue
+				if (issues_count > 0) && id.nil?
+					Rails.logger.info("Creating an issue")
+					return true
+				end
+				
+				#Editing an issue
+				if !id.nil?
+					Rails.logger.info("Editing an issue")
+					if @utils.nil?
+						@utils = Utils.new()
+					end
+					parent_issue = @utils.get_issue_project_parent(project)
+					if parent_issue.nil?
+						return true
+					else
+						if id != parent_issue.id
+							return true
+						end
+					end
+				end
+			end
+			
+			return false
+		end
+		
         def reschedule_on_with_patch(date)
 			if Plusgantt.calculate_end_date && self.project.module_enabled?("plusgantt")
 				Rails.logger.info("----------------reschedule_on_with_patch start----------------------------")
@@ -26,7 +71,7 @@ module IssuePatch
 					Rails.logger.info("----------------reschedule_on_with_patch initialize----------------------------")
 					@utils = Utils.new()
 				end
-				@utils.get_hollidays_between(date, date)
+				@utils.get_hollidays_between(date, date, project, @utils.get_place(self.assigned_to))
 				Rails.logger.info("issue: " + self.to_s)
 				self.start_date = date
 				if self.start_date && self.estimated_hours && self.leaf?

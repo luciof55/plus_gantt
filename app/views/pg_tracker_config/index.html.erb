@@ -1,0 +1,7 @@
+<h1><%= l(:tracker_config_title)%></h1>
+
+<%= link_to l(:label_new), new_pg_tracker_config_path, :class => 'icon icon-add' if @is_allowed %>
+<p></p>
+<% unless @tracker_configs.empty?%>	
+	<%= render(partial: "show_list", locals: {tracker_configs: @tracker_configs, is_allowed: @is_allowed}) %>
+<%end%>

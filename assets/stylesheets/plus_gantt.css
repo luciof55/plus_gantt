@@ -1,21 +1,39 @@
 .icon-close-tree { background-image: url(../images/folder.png); }
 .icon-open-tree { background-image: url(../images/folder_open.png); }
+/***** Gantt Dashboard *****/
+.plusgantt_progress_container {width: 335px;height: 220px;background-color: #fafafa;border: solid 3px #61a9dc;}
+.plusgantt_progress {position: relative;left: 72px;width: 180px;height: 180px;top: 0px;}
+.plusgantt_hours_container {width: 620px;height: 220px;background-color: #fafafa;border: solid 3px #61a9dc;}
+.plusgantt_exp_progress {width: 335px;height: 30px;line-height: 30px;text-align: center;font-weight: bold;color: #333;position: relative;top: 10px;left: 0px;background-color: #61a9dc;}
+.plusgantt_hours_right {height: 25px;width: 160px;border-bottom: 5px solid #7f7f7f;color: #7f7f7f;transform: rotate(-90deg);float: left;position: relative;left: -50px;top: 70px;text-align: center;font-weight: bold;}
+
+.plusgantt_hour_line {height: 30px;line-height: 30px;width: 340px;position: relative;left: 40px;color: white;top: 30px;text-align: center;}
+
+.plusgantt_hour_line.total_budget { background-color: #808080}
+.plusgantt_hour_line.partial_budget { background-color: #376092 }
+.plusgantt_hour_line.consumed_ok { background-color: #77933c }
+.plusgantt_hour_line.consumed_wargning { background-color: #cccc00 }
+.plusgantt_hour_line.consumed_red { background-color: #c0504d }
+
+.plusgantt_spacer { height: 10px;}
 
 /***** Gantt chart *****/
+.plusgantt_subject_area {overflow: hidden; border: 1px solid #c0c0c0;}
 .plusgantt_area {position: absolute;left: 0px;}
 
 .plusgantt_hdr {
-  position:absolute;
-  top:0;
-  height:16px;
-  border-top: 1px solid #c0c0c0;
-  border-bottom: 1px solid #c0c0c0;
-  border-right: 1px solid #c0c0c0;
+  position:absolute; top:0; height:16px; overflow: hidden;
+  border-top: 1px solid #c0c0c0; border-bottom: 1px solid #c0c0c0; border-right: 1px solid #c0c0c0;
   text-align: center;
-  overflow: hidden;
+  background: #eee;
 }
 
 .plusgantt_hdr.nwday {background-color:#f1f1f1; color:#999;}
+
+.plusgantt_hdr_col {position:absolute; top:0; height:16px; overflow: hidden;
+  border-top: 1px solid #c0c0c0; border-bottom: 1px solid #c0c0c0; border-right: 1px solid #c0c0c0;
+  text-align: center;font-size:0.7em;
+ }
 
 .plusgantt_subjects { font-size: 0.8em; }
 .plusgantt_subjects div {line-height:16px;height: 18px;overflow:hidden;white-space:nowrap;text-overflow: ellipsis;}
@@ -31,15 +49,9 @@
 .pgtaskcontainer.pgtask.pgproject {top:0px;}
 
 .pgtask {
-  position: absolute;
-  height:8px;
-  font-size:0.8em;
-  color:#888;
-  padding:0;
-  margin:0;
-  line-height:16px;
-  white-space:nowrap;
-  top: 4px;
+  position: absolute; top: 4px; height:8px; padding:0; margin:0;
+  font-size:0.8em; color:#888;
+  line-height:16px; white-space:nowrap;
 }
 
 .pgtask.label {top:0px; width:15px;}

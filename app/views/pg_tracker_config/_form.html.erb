@@ -1,0 +1,17 @@
+<div class="splitcontentleft">
+	<fieldset class="box tabular">
+		<legend><%=  l(:tracker_config_title) %></legend>
+		<p>
+			<%= l(:field_project) %>
+			<%= form.select :project_id, project_tree_options_for_select(Project.all.to_a, :selected => @pg_tracker_config.project, :include_blank => true, :required => false, disabled: disabled) %>    
+		</p>
+		<p>
+			<%= l(:field_tracker) %>
+			<%= form.select :tracker_id, options_for_select(@trackers, @pg_tracker_config.tracker_id), {:include_blank => false, :required => true, disabled: disabled} %>    
+		</p>
+		<p>
+			<%= l(:label_tracker_config_allow) %>
+			<%= form.select :allow_time_log, options_for_select(@allow_options, @pg_tracker_config.allow_time_log), {:include_blank => false, :required => true}%>
+		</p>
+	</fieldset>
+</div>

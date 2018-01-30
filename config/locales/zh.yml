@@ -20,4 +20,20 @@ zh:
   label_help_months_amount: 统计呈现的月数
   label_error_recalculate: 重新计算问题结束日期时发生错误，请检查Redmine日志或联系管理员处理！
   label_pgsubprojects: 子项目
+  label_create_report: Create Report
+  label_show_report: Show Reports
+  label_validate_parent_task: Validate Parent Task
+  label_validate_parent_task_help: if checked, when an issue is created or update parente task will be required
+  label_date_from_period_on: Start date Open period
+  label_date_from_period_on_help: Time entries date must be after start date open period
+  label_date_to_period_on: End date Open period
+  label_date_to_period_on_help: Time entries date must be before end date open period"
+  hour_time_entry_error: "With the current load it exceeds the maximum load of normal hours of the period. Total loaded: %{user_month_hour}. Maximum value: %{total_month_hour}"
+  open_periodo_entry_error: The date of loading belongs to a closed period
+  tracker_allow_time_log_error: Tracker/Project does not allow time log
+  tracker_config_title: Tracker Configuration
+  tracker_config_new: New configuration
+  tracker_config_edit: Configuration edit
+  label_tracker_config_allow: Allow time log
+  tracker_config_duplicated_error: A configuration already exists with the same values
   

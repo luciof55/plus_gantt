@@ -1,14 +1,41 @@
 module Plusgantt
 	HOURS_BY_DAY = 8.0
 	VALID_HOURS_BY_DAY = [4.0, 8.0, 12.0, 16.0]
-	CALCULATE_END_DATE = false
 	MONTHS = 6
 	
 	class << self
+	
+		def date_from_period_on
+			if Setting.plugin_plus_gantt['date_from_period_on'].nil?
+				User.current.today
+			else
+				Setting.plugin_plus_gantt['date_from_period_on'].to_date
+			end
+		end
+		
+		def date_to_period_on
+			if Setting.plugin_plus_gantt['date_to_period_on'].nil?
+				User.current.today
+			else
+				Setting.plugin_plus_gantt['date_to_period_on'].to_date
+			end
+		end
+	
+		def validate_parent_task
+			if Setting.plugin_plus_gantt['validate_parent_task'].nil?
+				false
+			else
+				if Setting.plugin_plus_gantt['validate_parent_task'] == '1'
+					true
+				else
+					false
+				end
+			end
+		end
 		
 		def calculate_end_date
 			if Setting.plugin_plus_gantt['calculate_end_date'].nil?
-				CALCULATE_END_DATE
+				false
 			else
 				if Setting.plugin_plus_gantt['calculate_end_date'] == '1'
 					true

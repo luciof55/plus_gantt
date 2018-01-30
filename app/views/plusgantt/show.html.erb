@@ -8,13 +8,9 @@
 
 <h2><%= l(:label_gantt) %></h2>
 
-<%= form_tag({:controller => 'plusgantt', :action => 'show',
-             :project_id => @project, :month => params[:month],
-             :year => params[:year], :months => params[:months]},
-             :method => :get, :id => 'query_form') do %>
+<%= form_tag(project_plusgantt_path(:project_id => @project), :id => 'query_form') do %>
 <%= hidden_field_tag 'set_filter', '1' %>
 <%= hidden_field_tag 'plusgantt', '1' %>
-
 
 <p class="buttons">
 <%= text_field_tag 'months', @plusgantt.months, :size => 2 %>
@@ -101,7 +97,7 @@
                 :zoom => zoom,
                 :g_width => g_width,
                 :subject_width => subject_width)
-  g_height = [(20 * (@plusgantt.number_of_rows + 6)) + 150, 206].max
+  g_height = [(20 * @plusgantt.number_of_rows) + 40, 280].max
   t_height = g_height + headers_height
 %>
 
@@ -113,50 +109,41 @@
 <tr>
 <td style="width:<%= subject_width %>px; padding:0px;">
   <%
-    style  = ""
-    style += "position:relative;"
-    style += "height: #{t_height + 24}px;"
+    style = "position:relative;"
+    style += "height: #{t_height}px;"
     style += "width: #{subject_width + 1}px;"
   %>
   <%= content_tag(:div, :style => style) do %>
     <%
-      style  = ""
-      style += "right:-2px;"
+      style = "right:-1px;"
       style += "width: #{subject_width}px;"
       style += "height: #{headers_height}px;"
-      style += 'background: #eee;'
-	  style += 'text-align: center;'
 	  text = '<h2>' + l(:label_plusgantt) + '</h2>'
     %>
     <%= content_tag(:div, text.html_safe, :style => style, :class => "plusgantt_hdr") %>
     <%
       style  = ""
-      style += "right:-2px;"
       style += "width: #{subject_width}px;"
-      style += "height: #{t_height}px;"
-      style += 'border-left: 1px solid #c0c0c0;'
-      style += 'overflow: hidden;'
+	  style += "height: #{g_height}px;"
     %>
-    <%= content_tag(:div, "", :style => style, :class => "plusgantt_hdr") %>
-	
-	<%
-		style  = ""
-		style += "position: absolute;"
-		style += "top: #{headers_height + 8}px;"
-	%>
-    <%= content_tag(:div, :id => 'div_subjects', :style => style, :class => "plusgantt_subjects") do %>
-      <%= @plusgantt.subjects.html_safe %>
-    <% end %>
+    <%= content_tag(:div, "", :style => style, :class => "plusgantt_subject_area") do %>
+		<%
+			style  = ""
+			style += "position: absolute;"
+			style += "top: #{headers_height + 8}px;"
+		%>
+		<%= content_tag(:div, :id => 'div_subjects', :style => style, :class => "plusgantt_subjects") do %>
+		  <%= @plusgantt.subjects.html_safe %>
+		<% end %>
+	<% end %>
   <% end %>
 </td>
 
 <td>
-<div style="position:relative;height:<%= t_height + 24 %>px;overflow:auto;" id="gantt_area">
+<div style="position:relative;right:1px;height:<%= t_height%>px;overflow:-webkit-paged-x;" id="gantt_area">
 <%
-  style  = ""
-  style += "width: #{g_width - 1}px;"
+  style = "width: #{g_width - 1}px;"
   style += "height: #{headers_height}px;"
-  style += 'background: #eee;'
 %>
 <%= content_tag(:div, '&nbsp;'.html_safe, :style => style, :class => "plusgantt_hdr") %>
 
@@ -164,17 +151,16 @@
 <%
   month_f = @plusgantt.date_from
   left = 0
-  height = (show_weeks ? header_height : header_height + g_height)
+  height = (show_weeks ? header_height - 1 : g_height)
 %>
 <% @plusgantt.months.times do %>
   <%
     width = (((month_f >> 1) - month_f) * zoom - 1).to_i
-    style  = ""
-    style += "left: #{left}px;"
+    style = "left: #{left}px;"
     style += "width: #{width}px;"
     style += "height: #{height}px;"
   %>
-  <%= content_tag(:div, :style => style, :class => "plusgantt_hdr") do %>
+  <%= content_tag(:div, :style => style, :class => "plusgantt_hdr_col") do %>
     <%= link_to "#{month_f.year}-#{month_f.month}",
                 @plusgantt.params.merge(:year => month_f.year, :month => month_f.month),
                 :title => "#{month_name(month_f.month)} #{month_f.year}" %>
@@ -189,7 +175,7 @@
 <% if show_weeks %>
   <%
     left = 0
-    height = (show_days ? header_height - 1 : header_height - 1 + g_height)
+    height = (show_days ? header_height - 1 : g_height - header_height - 1)
   %>
   <% if @plusgantt.date_from.cwday == 1 %>
     <%
@@ -201,14 +187,13 @@
       # find next monday after @date_from
       week_f = @plusgantt.date_from + (7 - @plusgantt.date_from.cwday + 1)
       width = (7 - @plusgantt.date_from.cwday + 1) * zoom - 1
-      style  = ""
-      style += "left: #{left}px;"
-      style += "top: 19px;"
+      style = "left: #{left}px;"
+      style += "top: #{header_height+1}px;"
       style += "width: #{width}px;"
       style += "height: #{height}px;"
     %>
     <%= content_tag(:div, '&nbsp;'.html_safe,
-                    :style => style, :class => "plusgantt_hdr") %>
+                    :style => style, :class => "plusgantt_hdr_col") %>
     <% left = left + width + 1 %>
   <% end %>
   <% while week_f <= @plusgantt.date_to %>
@@ -216,13 +201,12 @@
       width = ((week_f + 6 <= @plusgantt.date_to) ?
                   7 * zoom - 1 :
                   (@plusgantt.date_to - week_f + 1) * zoom - 1).to_i
-      style  = ""
-      style += "left: #{left}px;"
-      style += "top: 19px;"
+      style = "left: #{left}px;"
+      style += "top: #{header_height+1}px;"
       style += "width: #{width}px;"
       style += "height: #{height}px;"
     %>
-    <%= content_tag(:div, :style => style, :class => "plusgantt_hdr") do %>
+    <%= content_tag(:div, :style => style, :class => "plusgantt_hdr_col") do %>
       <%= content_tag(:small) do %>
         <%= week_f.cweek if width >= 16 %>
       <% end %>
@@ -238,20 +222,19 @@
 <% if show_day_num %>
   <%
     left = 0
-    height = g_height + header_height*2 - 1
+    height = header_height
+	top = (2 * header_height) + 1
     wday = @plusgantt.date_from.cwday
     day_num = @plusgantt.date_from
   %>
   <% (@plusgantt.date_to - @plusgantt.date_from + 1).to_i.times do %>
     <%
       width =  zoom - 1
-      style = ""
-      style += "left:#{left}px;"
-      style += "top:37px;"
-      style += "width:#{width}px;"
-      style += "height:#{height}px;"
-      style += "font-size:0.7em;"
-      clss = "plusgantt_hdr"
+      style = "left: #{left}px;"
+      style += "top: #{top}px;"
+      style += "width: #{width}px;"
+      style += "height: #{height}px;"
+      clss = "plusgantt_hdr_col"
       clss << " nwday" if @plusgantt.non_working_week_days.include?(wday)
     %>
     <%= content_tag(:div, :style => style, :class => clss) do %>
@@ -270,20 +253,23 @@
 <% if show_days %>
   <%
     left = 0
-    height = g_height + header_height - 1
-    top = (show_day_num ? 55 : 37)
+	if show_day_num
+		height = g_height - (3 * header_height) - 1
+		top = (3 * header_height) + 1
+	else
+		height = g_height - (2 * header_height) - 1
+		top = (2 * header_height) + 1
+	end
     wday = @plusgantt.date_from.cwday
   %>
   <% (@plusgantt.date_to - @plusgantt.date_from + 1).to_i.times do %>
     <%
       width =  zoom - 1
-      style  = ""
-      style += "left: #{left}px;"
+      style = "left: #{left}px;"
       style += "top: #{top}px;"
       style += "width: #{width}px;"
       style += "height: #{height}px;"
-      style += "font-size:0.7em;"
-      clss = "plusgantt_hdr"
+      clss = "plusgantt_hdr_col"
       clss << " nwday" if @plusgantt.non_working_week_days.include?(wday)
     %>
     <%= content_tag(:div, :style => style, :class => clss) do %>
@@ -298,8 +284,7 @@
 <% end %>
 
   <%
-    style  = ""
-    style += "position: absolute;"
+    style = "position: absolute;"
     style += "top: #{headers_height + 8}px;"
 	%>
  <%= content_tag(:div, :id => 'div_lines', :style => style) do %>
@@ -311,8 +296,7 @@
 <% if User.current.today >= @plusgantt.date_from and User.current.today <= @plusgantt.date_to %>
   <%
     today_left = (((User.current.today - @plusgantt.date_from + 1) * zoom).floor() - 1).to_i
-    style  = ""
-    style += "position: absolute;"
+    style = "position: absolute;"
     style += "height: #{g_height}px;"
     style += "top: #{headers_height + 1}px;"
     style += "left: #{today_left}px;"
@@ -326,8 +310,7 @@
 <%
 	fecha_control = @plusgantt.control_date
     control_left = (((fecha_control.to_date - @plusgantt.date_from + 1) * zoom).floor() - 1).to_i
-    style  = ""
-    style += "position: absolute;"
+    style = "position: absolute;"
     style += "height: #{g_height}px;"
     style += "top: #{headers_height + 1}px;"
     style += "left: #{control_left}px;"
@@ -337,8 +320,7 @@
  <%= content_tag(:div, '&nbsp;'.html_safe, :style => style, :id => 'corte') %>
 
 <%
-  style  = ""
-  style += "height: #{g_height}px;"
+  style = "height: #{g_height}px;"
   style += "top: #{headers_height + 1}px;"
   style += "width: #{g_width - 1}px;"
   css_class = ""

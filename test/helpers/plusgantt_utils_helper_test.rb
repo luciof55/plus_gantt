@@ -7,28 +7,32 @@ class PlusganttUtilsHelperTest < ActionView::TestCase
     start_date = "2017-04-10".to_date
 	end_date = "2017-04-18".to_date
 	@utils = Utils.new()
-    assert_equal 2, @utils.get_hollidays_between(start_date, end_date)
+	issue = Issue.find(19)
+    assert_equal 2, @utils.get_hollidays_between(start_date, end_date, issue.project, @utils.get_place(issue.assigned_to))
   end
   
   test "2 - should return two hollidays" do
     start_date = "2017-04-11".to_date
 	end_date = "2017-04-18".to_date
 	@utils = Utils.new()
-    assert_equal 2, @utils.get_hollidays_between(start_date, end_date)
+	issue = Issue.find(19)
+    assert_equal 2, @utils.get_hollidays_between(start_date, end_date, issue.project, @utils.get_place(issue.assigned_to))
   end
   
   test "should return one hollidays" do
     start_date = "2017-04-12".to_date
 	end_date = "2017-04-18".to_date
 	@utils = Utils.new()
-    assert_equal 1, @utils.get_hollidays_between(start_date, end_date)
+	issue = Issue.find(19)
+    assert_equal 1, @utils.get_hollidays_between(start_date, end_date, issue.project, @utils.get_place(issue.assigned_to))
   end
   
   test "should return 0 hollidays" do
     start_date = "2017-04-12".to_date
 	end_date = "2017-04-17".to_date
 	@utils = Utils.new()
-    assert_equal 0, @utils.get_hollidays_between(start_date, end_date)
+	issue = Issue.find(19)
+    assert_equal 0, @utils.get_hollidays_between(start_date, end_date, issue.project, @utils.get_place(issue.assigned_to))
   end
   
   test "1 - should return five days" do
@@ -142,19 +146,24 @@ class PlusganttUtilsHelperTest < ActionView::TestCase
   
   test "1 - Start date should be 2017-05-02" do
 	@utils = Utils.new()
-	assert_equal "2017-05-02".to_date, @utils.cal_start_date("2017-04-29".to_date)
+	issue = Issue.find(19)
+	issue.start_date = "2017-04-29".to_date
+	assert_equal "2017-05-02".to_date, @utils.cal_start_date(issue)
   end
   
    test "2 - Start date should be 2017-05-02" do
 	@utils = Utils.new()
-	assert_equal "2017-05-02".to_date, @utils.cal_start_date("2017-04-30".to_date)
+	issue = Issue.find(19)
+	issue.start_date = "2017-04-30".to_date
+	assert_equal "2017-05-02".to_date, @utils.cal_start_date(issue)
   end
   
   test "End date should be 2017-04-17" do
 	@utils = Utils.new()
 	start_date = "2017-04-05".to_date
 	end_date = start_date + 7
-    assert_equal "2017-04-17".to_date, @utils.cal_end_date(start_date, end_date)
+	issue = Issue.find(19)
+    assert_equal "2017-04-17".to_date, @utils.cal_end_date(start_date, end_date, issue)
   end
   
 end
