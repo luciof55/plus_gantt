@@ -33,34 +33,38 @@ module TimelogPatch
 		def validate_timelog
 			Rails.logger.info("------------------------validate_timelog inicio ------------------------")
 			Rails.logger.info("------------------------self.spent_on: " + self.spent_on.to_s)
-			if self.spent_on >= Plusgantt.date_from_period_on && self.spent_on <= Plusgantt.date_to_period_on
-				tracker_config = PgTrackerConfig.where(project: self.issue.project, tracker: self.issue.tracker).first
-				if tracker_config.nil? 
-					tracker_config = PgTrackerConfig.where(tracker: self.issue.tracker).first
-				end
-				if tracker_config.nil? || tracker_config.allow_time_log == 1
-					custom_field = CustomField.where("name = 'Extras'").first
-					if custom_field
-						self.custom_field_values.each do |item|
-							if item.custom_field.id == custom_field.id
-								if item.value == '0'
-									Rails.logger.info("Validar horas")
-									message = validate(self)
-									if message != ''
-										self.errors.add :hours, :invalid, message: message
+			if self.issue.nil?
+				Rails.logger.info("Ticket no válido")
+			else
+				if self.spent_on >= Plusgantt.date_from_period_on && self.spent_on <= Plusgantt.date_to_period_on
+					tracker_config = PgTrackerConfig.where(project: self.issue.project, tracker: self.issue.tracker).first
+					if tracker_config.nil? 
+						tracker_config = PgTrackerConfig.where(tracker: self.issue.tracker).first
+					end
+					if tracker_config.nil? || tracker_config.allow_time_log == 1
+						custom_field = CustomField.where("name = 'Extras'").first
+						if custom_field
+							self.custom_field_values.each do |item|
+								if item.custom_field.id == custom_field.id
+									if item.value == '0'
+										Rails.logger.info("Validar horas")
+										message = validate(self)
+										if message != ''
+											self.errors.add :hours, :invalid, message: message
+										end
+									else
+										Rails.logger.info("No validar horas")
 									end
-								else
-									Rails.logger.info("No validar horas")
+									break
 								end
-								break
 							end
 						end
+					else
+						self.errors.add :spent_on, :invalid, message: l(:tracker_allow_time_log_error)
 					end
 				else
-					self.errors.add :spent_on, :invalid, message: l(:tracker_allow_time_log_error)
+					self.errors.add :spent_on, :invalid, message: l(:open_periodo_entry_error)
 				end
-			else
-				self.errors.add :spent_on, :invalid, message: l(:open_periodo_entry_error)
 			end
 			Rails.logger.info("------------------------validate_timelog fin ------------------------")
 		end
