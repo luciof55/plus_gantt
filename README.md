@@ -49,9 +49,15 @@ If you do not want the plugin calculate the start date and due date you can unck
 * Then enable the plugin “Administration->Plugins” for projects
 * Also you must set roles permissions, go to Administration -> Roles -> Permissions report, look for Plusgantt and check the roles you want.
 
-## Develop Environment
+## Tested Environments
 * Redmine version                3.3.0.stable
 * Ruby version                   2.3.0-p0 (2015-12-25) [x64-mingw32]
 * Rails version                  4.2.6
 * Environment                    production
 * Database adapter               Mysql2
+
+* Redmine version                3.3.8.stable
+* Ruby version                   2.3.3-p222 (2016-11-21) [x64-mingw32]
+* Rails version                  4.2.7.1
+* Environment                    production
+* Database adapter               PostgreSQL
