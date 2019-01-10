@@ -1,10 +1,12 @@
 <% if User.current.allowed_to?(:view_plusgantt, @project, :global => true) && @project%>
-<h3><%= l(:label_plusgantt) %></h3>
-<%= '&nbsp;&nbsp;'.html_safe %>
-<%= link_to l(:label_pg_dashboard), {:controller => "plusgantt_dashboard", :action => "show", :project_id => @project} %><br>
-<%= '&nbsp;&nbsp;'.html_safe %>
-<%= link_to l(:label_plusgantt_chart), project_plusgantt_path(:project_id => @project) %><br>
-<% if User.current.allowed_to?(:config_tracker_timelog, @project, :global => true) %>
-	<%= link_to l(:tracker_config_title), :controller => 'pg_tracker_config', :action => "index" %><br>
-<% end %>	
+	<h3><%= l(:label_plusgantt) %></h3>
+	<%= '&nbsp;&nbsp;'.html_safe %>
+	<%= link_to l(:label_pg_dashboard), {:controller => "plusgantt_dashboard", :action => "show", :project_id => @project} %><br>
+	<%= '&nbsp;&nbsp;'.html_safe %>
+	<%= link_to l(:label_plusgantt_chart), project_plusgantt_path(:project_id => @project) %><br>
+	<% if User.current.allowed_to?(:config_tracker_timelog, @project, :global => true) %>
+		<%= '&nbsp;&nbsp;'.html_safe %>
+		<%= link_to l(:tracker_config_title), :controller => 'pg_tracker_config', :action => "index" %><br>
+	<% end %>
+	<h3></h3>
 <% end %>

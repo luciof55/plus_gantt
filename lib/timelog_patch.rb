@@ -31,42 +31,53 @@ module TimelogPatch
 		include PlusganttUtilsHelper
 		
 		def validate_timelog
-			Rails.logger.info("------------------------validate_timelog inicio ------------------------")
-			Rails.logger.info("------------------------self.spent_on: " + self.spent_on.to_s)
+			Rails.logger.debug("------------------------validate_timelog inicio ------------------------")
+			Rails.logger.debug("------------------------self.spent_on: " + self.spent_on.to_s)
 			if self.issue.nil?
 				Rails.logger.info("Ticket no válido")
 			else
-				if self.spent_on >= Plusgantt.date_from_period_on && self.spent_on <= Plusgantt.date_to_period_on
-					tracker_config = PgTrackerConfig.where(project: self.issue.project, tracker: self.issue.tracker).first
-					if tracker_config.nil? 
-						tracker_config = PgTrackerConfig.where(tracker: self.issue.tracker).first
-					end
-					if tracker_config.nil? || tracker_config.allow_time_log == 1
-						custom_field = CustomField.where("name = 'Extras'").first
-						if custom_field
-							self.custom_field_values.each do |item|
-								if item.custom_field.id == custom_field.id
-									if item.value == '0'
-										Rails.logger.info("Validar horas")
-										message = validate(self)
-										if message != ''
-											self.errors.add :hours, :invalid, message: message
-										end
-									else
-										Rails.logger.info("No validar horas")
-									end
-									break
-								end
+				if self.user && ( ( self.instance_of?(TimeEntry) && self.user.allowed_to?(:log_time, self.issue.project) ) ||
+				( self.instance_of?(TimeEntryFile) && User.current.allowed_to?(:import_time_entry_file, self.issue.project) ) )
+					if !self.issue.was_closed?
+						if self.spent_on? && self.spent_on >= Plusgantt.date_from_period_on && self.spent_on <= Plusgantt.date_to_period_on
+							tracker_config = PgTrackerConfig.where(project: self.issue.project, tracker: self.issue.tracker).first
+							if tracker_config.nil? 
+								tracker_config = PgTrackerConfig.where(tracker: self.issue.tracker).first
 							end
+							if tracker_config.nil? || tracker_config.allow_time_log == 1
+								custom_field = CustomField.where("name = 'Extras'").first
+								if custom_field
+									self.custom_field_values.each do |item|
+										if item.custom_field.id == custom_field.id
+											if item.value == '0'
+												Rails.logger.info("Validar horas")
+												message = validate(self)
+												if message != ''
+													self.errors.add :hours, :invalid, message: message
+												end
+											else
+												Rails.logger.info("No validar horas")
+											end
+											break
+										end
+									end
+								end
+							else
+								self.errors.add :spent_on, :invalid, message: l(:tracker_allow_time_log_error)
+							end
+						else
+							self.errors.add :spent_on, :invalid, message: l(:open_periodo_entry_error)
 						end
 					else
-						self.errors.add :spent_on, :invalid, message: l(:tracker_allow_time_log_error)
+						self.errors.add :issue_id, :invalid, message: l(:default_issue_status_closed)
 					end
 				else
-					self.errors.add :spent_on, :invalid, message: l(:open_periodo_entry_error)
+					if self.user
+						self.errors.add :project_id, :invalid, message: l(:project_permision_entry_error)
+					end
 				end
 			end
-			Rails.logger.info("------------------------validate_timelog fin ------------------------")
+			Rails.logger.debug("------------------------validate_timelog fin ------------------------")
 		end
 		
 		def validate(time_entry)
@@ -104,7 +115,7 @@ module TimelogPatch
 				
 				total_month_hour = total_days * workingHour
 			end
-			Rails.logger.info("------------------------total_month_hour: " + total_month_hour.to_s)
+			Rails.logger.debug("------------------------total_month_hour: " + total_month_hour.to_s)
 			
 			time_entries = TimeEntry.where('user_id = ? AND ? <= spent_on AND spent_on <= ?', time_entry.user.id, first_day, last_day)
 			user_month_hour = 0
@@ -120,7 +131,7 @@ module TimelogPatch
 				end
 			end
 			
-			Rails.logger.info("------------------------user_month_hour: " + user_month_hour.to_s)
+			Rails.logger.debug("------------------------user_month_hour: " + user_month_hour.to_s)
 			
 			if (user_month_hour + new_time_entry_hours) > total_month_hour
 				return l(:hour_time_entry_error, :user_month_hour => user_month_hour.to_s, :total_month_hour => total_month_hour.to_s)
@@ -151,7 +162,7 @@ module TimelogPatch
 	
 		def get_place(user)
 			if @utils.nil?
-				Rails.logger.info("----------------reschedule_on_with_patch initialize----------------------------")
+				Rails.logger.debug("----------------reschedule_on_with_patch initialize----------------------------")
 				@utils = Utils.new()
 			end
 			return @utils.get_place(user)
@@ -162,7 +173,7 @@ module TimelogPatch
 			if user && user.custom_value_for(CustomField.find_by_name_and_type('Jornada', 'UserCustomField')) &&
 				user.custom_value_for(CustomField.find_by_name_and_type('Jornada', 'UserCustomField')).value && user.custom_value_for(CustomField.find_by_name_and_type('Jornada', 'UserCustomField')).value.to_i > 0
 				workingHour = user.custom_value_for(CustomField.find_by_name_and_type('Jornada', 'UserCustomField')).value.to_i
-				Rails.logger.info("------------------------workingHour: " + workingHour.to_s)
+				Rails.logger.debug("------------------------workingHour: " + workingHour.to_s)
 			end
 			return workingHour.to_i
 		end

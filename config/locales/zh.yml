@@ -31,6 +31,7 @@ zh:
   hour_time_entry_error: "当前输入的工时已超过了正常工作时间的最大工时定义。总计工时值：%{user_month_hour}。 最大工时值：%{total_month_hour}"
   open_periodo_entry_error: 加载日期必须属于一个封闭的时间范围区间。
   tracker_allow_time_log_error: 跟踪类型/项目禁用了时间日志，请联系管理员启用该选项。
+  project_permision_entry_error: Not allowed to load time entries
   tracker_config_title: 跟踪类型配置
   tracker_config_new: 添加配置
   tracker_config_edit: 编辑配置
