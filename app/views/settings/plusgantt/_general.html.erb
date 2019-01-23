@@ -117,6 +117,13 @@
       </td>
     </tr>
 	<tr>
+      <th><%= l(:label_status_not_allowed_time_entry) %></th>
+      <td>
+		<%= select_tag 'settings[status_not_allowed_time_entry]', options_for_select(Plusgantt.allowed_statuses.collect {|p| [p.name, p.id]}, Plusgantt.status_not_allowed_time_entry) %>
+		<%= l(:label_status_not_allowed_time_entry_help) %>
+      </td>
+    </tr>
+	<tr>
       <th><%= l(:label_hollidays) %></th>
       <td>
 		<%= date_field_tag 'holliday', User.current.today %>

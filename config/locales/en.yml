@@ -37,4 +37,14 @@ en:
   tracker_config_edit: Configuration edit
   label_tracker_config_allow: Allow time log
   tracker_config_duplicated_error: A configuration already exists with the same values
+  label_status_not_allowed_time_entry: Status
+  label_status_not_allowed_time_entry_help: Issues whit this status will be not allowed to log time
+  issue_status_not_allowed_error: Issue status is not allowed
+  StatusNotAllowedTimeEntry: Status not allowed
+  Teams URL: Teams Channel URL
+  asignacion: Assignment
+  Aplicación: Application
+  CAU: CAU
+  Modulo Fenix: Fenix Module
+  ValidarIssuePadre: Validate Parent Issue
   

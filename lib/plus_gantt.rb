@@ -5,6 +5,18 @@ module Plusgantt
 	
 	class << self
 	
+		def allowed_statuses
+			return IssueStatus.all()
+		end
+	
+		def status_not_allowed_time_entry
+			if Setting.plugin_plus_gantt['status_not_allowed_time_entry'].nil?
+				nil
+			else
+				Setting.plugin_plus_gantt['status_not_allowed_time_entry'].to_i
+			end
+		end
+	
 		def date_from_period_on
 			if Setting.plugin_plus_gantt['date_from_period_on'].nil?
 				User.current.today

@@ -37,3 +37,13 @@ es:
   tracker_config_edit: Edición de configuración
   label_tracker_config_allow: Permite carga
   tracker_config_duplicated_error: Ya existe una configuración para los datos ingresados
+  label_status_not_allowed_time_entry: Estado
+  label_status_not_allowed_time_entry_help: Los issues en este estado no se podrán cargar horas.
+  issue_status_not_allowed_error: El estado actual no permite realizar imputaciones
+  StatusNotAllowedTimeEntry: Estado no valido
+  Teams URL: URL de Equipo Teams
+  asignacion: Asignación
+  Aplicación: Aplicación
+  CAU: CAU
+  Modulo Fenix: Módulo Fenix
+  ValidarIssuePadre: Validar Issue Padre

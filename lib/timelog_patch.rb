@@ -38,7 +38,7 @@ module TimelogPatch
 			else
 				if self.user && ( ( self.instance_of?(TimeEntry) && self.user.allowed_to?(:log_time, self.issue.project) ) ||
 				( self.instance_of?(TimeEntryFile) && User.current.allowed_to?(:import_time_entry_file, self.issue.project) ) )
-					if !self.issue.was_closed?
+					if allow_status(self.issue)
 						if self.spent_on? && self.spent_on >= Plusgantt.date_from_period_on && self.spent_on <= Plusgantt.date_to_period_on
 							tracker_config = PgTrackerConfig.where(project: self.issue.project, tracker: self.issue.tracker).first
 							if tracker_config.nil? 
@@ -69,7 +69,7 @@ module TimelogPatch
 							self.errors.add :spent_on, :invalid, message: l(:open_periodo_entry_error)
 						end
 					else
-						self.errors.add :issue_id, :invalid, message: l(:default_issue_status_closed)
+						self.errors.add :issue_id, :invalid, message: l(:issue_status_not_allowed_error)
 					end
 				else
 					if self.user
@@ -191,6 +191,29 @@ module TimelogPatch
 			end
 			
 			return 1
+		end
+		
+		def allow_status(issue)
+			if issue.project.custom_value_for(CustomField.find_by_name_and_type('StatusNotAllowedTimeEntry', 'ProjectCustomField')) && issue.project.custom_value_for(CustomField.find_by_name_and_type('StatusNotAllowedTimeEntry', 'ProjectCustomField')).value.present?
+				
+				index = issue.project.custom_value_for(CustomField.find_by_name_and_type('StatusNotAllowedTimeEntry', 'ProjectCustomField')).value.to_s.index('-')
+				
+				if !index.nil? && index > 0 && issue.project.custom_value_for(CustomField.find_by_name_and_type('StatusNotAllowedTimeEntry', 'ProjectCustomField')).value.to_s[0, index].to_i > 0
+					if issue.project.custom_value_for(CustomField.find_by_name_and_type('StatusNotAllowedTimeEntry', 'ProjectCustomField')).value.to_s[0, index].to_i == issue.status_id
+						return false
+					else
+						return true
+					end
+				else
+					return true
+				end
+			else
+				if Plusgantt.status_not_allowed_time_entry.nil? || Plusgantt.status_not_allowed_time_entry != issue.status_id
+					return true
+				else
+					return false
+				end
+			end
 		end
 	end
 end
