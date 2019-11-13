@@ -1,6 +1,6 @@
 class PlusganttController < ApplicationController
   menu_item :plusgantt
-  before_filter :find_optional_project
+  before_action :find_optional_project
 
   rescue_from Query::StatementInvalid, :with => :query_statement_invalid
 
@@ -15,7 +15,7 @@ class PlusganttController < ApplicationController
   include PlusganttChartHelper
 
   def show
-	params.store('main_project', @project)
+	# params.store('main_project', @project)
     @plusgantt = PlusganttChart.new(params)
     @plusgantt.project = @project
     retrieve_query

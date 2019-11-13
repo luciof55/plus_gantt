@@ -88,5 +88,6 @@ end
 Rails.configuration.to_prepare do
     unless Issue.included_modules.include? Plusgantt
         Issue.send(:include, IssuePatch)
+		Rails.logger.info("Send Plusgantt IssuePatch")
     end
 end

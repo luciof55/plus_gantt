@@ -5,7 +5,7 @@ require 'issue_patch'
 require 'timelog_patch'
 require_dependency 'plusgantt_hook_listener'
 
-ActionDispatch::Callbacks.to_prepare do
+ActiveSupport::Reloader.to_prepare do
   require 'plus_gantt'
 end
 

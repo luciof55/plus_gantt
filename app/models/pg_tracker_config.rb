@@ -2,7 +2,7 @@ class PgTrackerConfig < ActiveRecord::Base
   unloadable
   belongs_to :tracker
   belongs_to :project
-  attr_accessible :id, :tracker_id, :project_id, :allow_time_log
+  attr_accessor :id, :tracker_id, :project_id, :allow_time_log
   
   validates_presence_of :tracker_id, :allow_time_log
   

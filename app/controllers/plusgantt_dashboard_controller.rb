@@ -1,10 +1,10 @@
 class PlusganttDashboardController < ApplicationController
   menu_item :plusgantt_dashboard
 
-  before_filter :init_cache, :only => [:init_run, :run]
-  before_filter :find_optional_project
-  before_filter :read_cache, :only => [:run]
-  after_filter  :write_cache, :only => [:init_run, :run]
+  before_action :init_cache, :only => [:init_run, :run]
+  before_action :find_optional_project
+  before_action :read_cache, :only => [:run]
+  after_action  :write_cache, :only => [:init_run, :run]
   
   rescue_from Query::StatementInvalid, :with => :query_statement_invalid
 
