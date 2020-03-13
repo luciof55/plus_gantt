@@ -397,5 +397,46 @@ module PlusganttUtilsHelper
 			end
 			return place
 		end
+		
+		def calc_issue_current_progress(issue)
+			Rails.logger.info("%%%%%%%%%%%%%INCIO Issue: " + issue.id.to_s)
+			total_hours = 0.00
+			current_progress = 0.00
+			
+			if issue.leaf?
+				if !issue.estimated_hours.nil?
+					current_progress = issue.done_ratio
+				end
+				
+				Rails.logger.info("%%%%%%%%%%%%%HOJA Issue: " + issue.id.to_s + " - Current progress: " + current_progress.to_s)
+				Rails.logger.info("%%%%%%%%%%%%%FIN Issue: " + issue.id.to_s)
+				return current_progress
+			else
+				issue.descendants.each do |child_issue|
+					#Rails.logger.info("Issue Padre: " + issue.to_s + ". Issue hijo: " + child_issue.to_s)
+					if child_issue.leaf? 
+						if !child_issue.estimated_hours.nil?
+							ratio = (child_issue.done_ratio / 100.00)
+							Rails.logger.info("Hijo: " + child_issue.id.to_s + " avance: " + ratio.to_s)
+							Rails.logger.info("Hijo: " + child_issue.id.to_s + " hs: " + child_issue.estimated_hours.to_s)
+							total_hours += (ratio * child_issue.estimated_hours.to_d)
+							Rails.logger.info("Acumulando las horas del hijo: " + child_issue.id.to_s + " según avance: " + total_hours.to_s)
+						else
+							Rails.logger.info("Issue: " + child_issue.id.to_s + " Hijo hoja pero sin horas")
+						end
+					else
+						Rails.logger.info("%%%%%%%%%%%%%Hijo Issue: " +  child_issue.id.to_s + " Ignorado")
+					end
+				end
+				
+				if total_hours > 0
+					current_progress = (total_hours / issue.total_estimated_hours * 100.00).round(2)
+				end
+				
+				Rails.logger.info("%%%%%%%%%%%%%Padre Issue: " + issue.id.to_s + " - Current progress: " + current_progress.to_s)
+				Rails.logger.info("%%%%%%%%%%%%%FIN Issue: " + issue.id.to_s)
+				return current_progress
+			end
+		end
 	end
 end

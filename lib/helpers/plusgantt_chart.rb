@@ -354,9 +354,11 @@ module PlusganttChartHelper
 			est_progress = calc_issue_expected_progress(issue, self.control_date)
 			@cached_label_progress ||= l(:label_progress)
 			@cached_label_expected ||= l(:label_expected_progress)
-			label = "#{@cached_label_progress}: #{issue.done_ratio}%. #{@cached_label_expected}: #{est_progress}%"
+			#label = "#{@cached_label_progress}: #{issue.done_ratio}%. #{@cached_label_expected}: #{est_progress}%"
+			current_progress = @utils.calc_issue_current_progress(issue)
+			label = "#{@cached_label_progress}: #{current_progress}%. #{@cached_label_expected}: #{est_progress}%"
 			markers = !issue.leaf?
-			line(issue.start_date, issue.due_date, issue.done_ratio, markers, label, options, issue, issues)
+			line(issue.start_date, issue.due_date, current_progress, markers, label, options, issue, issues)
         end
     end
 
