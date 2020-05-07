@@ -22,7 +22,7 @@
 					<% end %>
 				</td>
 				<% if is_allowed %>
-	      			<td><%= link_to l(:button_edit), edit_pg_tracker_config_path(:id => tracker_config.id) %></td>
+	      			<td><%= link_to l(:button_edit), edit_pg_tracker_config_path(tracker_config) %></td>
 	      			<td><%= link_to l(:button_delete), pg_tracker_config_path(tracker_config),
 	              		method: :delete,
 	              		data: { confirm: l(:text_are_you_sure) } %></td>

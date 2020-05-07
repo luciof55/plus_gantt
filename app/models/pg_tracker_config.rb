@@ -2,7 +2,7 @@ class PgTrackerConfig < ActiveRecord::Base
   unloadable
   belongs_to :tracker
   belongs_to :project
-  attr_accessor :id, :tracker_id, :project_id, :allow_time_log
+  #attr_accessor :id, :tracker_id, :project_id, :allow_time_log
   
   validates_presence_of :tracker_id, :allow_time_log
   
@@ -22,14 +22,14 @@ class PgTrackerConfig < ActiveRecord::Base
 		end
 	end
 	
-	if self.id.nil?
-		if self.project_id
-			if PgTrackerConfig.where("project_id = ? AND tracker_id = ?", self.project_id, self.tracker_id).count > 0
-				errors.add :project_id, :tracker_config_duplicated_error 
-			end
-		else
+	if self.id.blank?
+		if self.project_id.blank?
 			if PgTrackerConfig.where("tracker_id = ? and project_id is null", self.tracker_id).count > 0
 				errors.add :tracker_id, :tracker_config_duplicated_error 
+			end
+		else
+			if PgTrackerConfig.where("project_id = ? AND tracker_id = ?", self.project_id, self.tracker_id).count > 0
+				errors.add :project_id, :tracker_config_duplicated_error 
 			end
 		end
 	end

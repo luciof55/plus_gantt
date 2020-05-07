@@ -20,9 +20,16 @@ class PgTrackerConfigController < ApplicationController
   end    
   
   def update
-	@pg_tracker_config = PgTrackerConfig.find(params[:id]) rescue nil 
+	pg_tracker_config = PgTrackerConfig.find(params[:id]) rescue nil 
 	respond_to do |format|
-	  if @pg_tracker_config.update_attributes(params[:pg_tracker_config])
+	  
+		if params[:pg_tracker_config][:project_id]
+			pg_tracker_config.project_id = params[:pg_tracker_config][:project_id]
+		end
+		pg_tracker_config.tracker_id = params[:pg_tracker_config][:tracker_id]
+		pg_tracker_config.allow_time_log = params[:pg_tracker_config][:allow_time_log]
+	  
+	  if pg_tracker_config.save
 		format.html { 
 			flash[:notice] = 'Tracker Configuration was successfully updated.'
 			redirect_to(:action => 'index')
@@ -30,24 +37,36 @@ class PgTrackerConfigController < ApplicationController
 		format.xml  { head :ok }
 	  else
 		format.html {
-		  flash[:error] = "<ul>" + @pg_tracker_config.errors.full_messages.map{|o| "<li>" + o + "</li>" }.join("") + "</ul>" 
+		  flash[:error] = "<ul>" + pg_tracker_config.errors.full_messages.map{|o| "<li>" + o + "</li>" }.join("") + "</ul>" 
 		  redirect_to(:action => 'edit') }
-		format.xml  { render :xml => @pg_tracker_config.errors, :status => :unprocessable_entity }
+		format.xml  { render :xml => pg_tracker_config.errors, :status => :unprocessable_entity }
 	  end
 	end
   end
   
   def create
-	@pg_tracker_config = PgTrackerConfig.new(params[:pg_tracker_config])
-	if @pg_tracker_config.save
+  
+	tracker_config = PgTrackerConfig.new
+	
+	if params[:pg_tracker_config][:project_id] && !params[:pg_tracker_config][:project_id].blank?
+		tracker_config.project_id = params[:pg_tracker_config][:project_id]
+	end
+	
+	tracker_config.tracker_id = params[:pg_tracker_config][:tracker_id]
+	tracker_config.allow_time_log = params[:pg_tracker_config][:allow_time_log]
+	
+	Rails.logger.info("tracker_id")
+	Rails.logger.info(tracker_config.tracker_id)
+	
+	if tracker_config.save
 		flash[:notice] = 'Tracker Configuration was successfully saved.'
 		redirect_to action: 'index'
 	else
 		respond_to do |format| 
 			format.html {
-			  flash[:error] = "<ul>" + @pg_tracker_config.errors.full_messages.map{|o| "<li>" + o + "</li>" }.join("") + "</ul>"
+			  flash[:error] = "<ul>" + tracker_config.errors.full_messages.map{|o| "<li>" + o + "</li>" }.join("") + "</ul>"
 			  redirect_to(:action => 'new') }
-			format.api  { render_validation_errors(@pg_tracker_config) }
+			format.api  { render_validation_errors(tracker_config) }
 		end 
 	end
   end
