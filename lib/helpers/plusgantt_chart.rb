@@ -32,7 +32,7 @@ module PlusganttChartHelper
       attr_accessor :project
       attr_accessor :view
 
-      def initialize(options={})
+      def initialize(options={}, project)
         options = options.dup
         if options[:year] && options[:year].to_i >0
           @year_from = options[:year].to_i
@@ -46,8 +46,13 @@ module PlusganttChartHelper
 				@month_from ||= options[:main_project].start_date.month
 				@year_from ||= options[:main_project].start_date.year
 			else
-				@month_from ||= User.current.today.month
-				@year_from ||= User.current.today.year
+				if (project)
+					@month_from ||= project.start_date.month
+					@year_from ||= project.start_date.year
+				else
+					@month_from ||= User.current.today.month
+					@year_from ||= User.current.today.year
+				end
 			end
         end
         zoom = (options[:zoom] || User.current.pref[:gantt_zoom]).to_i

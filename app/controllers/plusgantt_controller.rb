@@ -15,9 +15,9 @@ class PlusganttController < ApplicationController
   include PlusganttChartHelper
 
   def show
-	# params.store('main_project', @project)
-    @plusgantt = PlusganttChart.new(params)
+    @plusgantt = PlusganttChart.new(params, @project)
     @plusgantt.project = @project
+	
     retrieve_query
     @query.group_by = nil
     @plusgantt.query = @query if @query.valid?

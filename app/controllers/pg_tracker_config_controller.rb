@@ -55,9 +55,6 @@ class PgTrackerConfigController < ApplicationController
 	tracker_config.tracker_id = params[:pg_tracker_config][:tracker_id]
 	tracker_config.allow_time_log = params[:pg_tracker_config][:allow_time_log]
 	
-	Rails.logger.info("tracker_id")
-	Rails.logger.info(tracker_config.tracker_id)
-	
 	if tracker_config.save
 		flash[:notice] = 'Tracker Configuration was successfully saved.'
 		redirect_to action: 'index'
