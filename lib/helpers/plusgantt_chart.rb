@@ -46,7 +46,7 @@ module PlusganttChartHelper
 				@month_from ||= options[:main_project].start_date.month
 				@year_from ||= options[:main_project].start_date.year
 			else
-				if (project)
+				if (project && project.start_date)
 					@month_from ||= project.start_date.month
 					@year_from ||= project.start_date.year
 				else
